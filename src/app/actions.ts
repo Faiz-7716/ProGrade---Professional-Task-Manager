@@ -10,6 +10,10 @@ import {
   GenerateLinkedInPostInput,
 } from '@/ai/flows/generate-linkedin-post';
 import {
+  parseResume,
+  ParseResumeInput,
+} from '@/ai/flows/parse-resume';
+import {
   provideDailyGrowthSuggestions,
   ProvideDailyGrowthSuggestionsInput,
 } from '@/ai/flows/provide-daily-growth-suggestions';
@@ -73,6 +77,15 @@ export async function getDailyGrowthSuggestionsAction(
   try {
     const result = await provideDailyGrowthSuggestions(input);
     return { suggestions: result.growthSuggestions };
+  } catch (e) {
+    return handleActionError(e);
+  }
+}
+
+export async function parseResumeAction(input: ParseResumeInput) {
+  try {
+    const result = await parseResume(input);
+    return result;
   } catch (e) {
     return handleActionError(e);
   }

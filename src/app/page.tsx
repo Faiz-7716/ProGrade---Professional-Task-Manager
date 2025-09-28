@@ -4,6 +4,7 @@ import HeadlineGenerator from '@/components/dashboard/headline-generator';
 import AboutSectionCreator from '@/components/dashboard/about-section-creator';
 import PostWriter from '@/components/dashboard/post-writer';
 import ConnectionTemplates from '@/components/dashboard/connection-templates';
+import ResumeParser from '@/components/dashboard/resume-parser';
 
 export default function Home() {
   return (
@@ -26,6 +27,7 @@ export default function Home() {
         <HeadlineGenerator />
         <AboutSectionCreator />
         <PostWriter />
+        <ResumeParser />
         <ConnectionTemplates />
       </div>
     </div>
