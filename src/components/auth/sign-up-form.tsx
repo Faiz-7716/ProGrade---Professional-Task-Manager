@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -64,12 +65,12 @@ export default function SignUpForm() {
     if (provider) {
        if (error.code === 'auth/account-exists-with-different-credential') {
         description =
-          'An account already exists with the same email address but different sign-in credentials.';
+          'An account already exists with the same email address but different sign-in credentials. Please log in with the original method.';
       } else {
-        description = `Failed to sign up with ${provider}. Please try again.`;
+        description = `Failed to sign up with ${provider}. Please check your Firebase project configuration.`;
       }
     } else if (error.code === 'auth/email-already-in-use') {
-      description = 'This email is already associated with an account.';
+      description = 'This email is already associated with an account. Please log in instead.';
     }
 
     toast({
