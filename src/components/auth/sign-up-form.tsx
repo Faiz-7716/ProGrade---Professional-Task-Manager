@@ -41,9 +41,6 @@ const formSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
-const googleProvider = new GoogleAuthProvider();
-const githubProvider = new GithubAuthProvider();
-
 export default function SignUpForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
@@ -92,16 +89,22 @@ export default function SignUpForm() {
         values.password
       );
       handleSuccess();
-    } catch (error: any) {
+    } catch (error: any)_ {
       handleError(error);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function handleSocialSignUp(provider: AuthProvider, providerName: string) {
+  async function handleSocialSignUp(providerName: 'Google' | 'GitHub') {
     setSocialLoading(providerName);
     try {
+      let provider: AuthProvider;
+      if (providerName === 'Google') {
+        provider = new GoogleAuthProvider();
+      } else {
+        provider = new GithubAuthProvider();
+      }
       await signInWithPopup(auth, provider);
       handleSuccess();
     } catch (error: any) {
@@ -127,9 +130,7 @@ export default function SignUpForm() {
                 variant="outline"
                 type="button"
                 disabled={!!isSocialLoading}
-                onClick={() =>
-                  handleSocialSignUp(googleProvider, 'Google')
-                }
+                onClick={() => handleSocialSignUp('Google')}
               >
                 {isSocialLoading === 'Google' ? (
                   <Loader2 className="animate-spin" />
@@ -141,9 +142,7 @@ export default function SignUpForm() {
                 variant="outline"
                 type="button"
                 disabled={!!isSocialLoading}
-                onClick={() =>
-                  handleSocialSignUp(githubProvider, 'GitHub')
-                }
+                onClick={() => handleSocialSignUp('GitHub')}
               >
                 {isSocialLoading === 'GitHub' ? (
                   <Loader2 className="animate-spin" />

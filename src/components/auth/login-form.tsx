@@ -41,9 +41,6 @@ const formSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
-const googleProvider = new GoogleAuthProvider();
-const githubProvider = new GithubAuthProvider();
-
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
@@ -95,9 +92,15 @@ export default function LoginForm() {
     }
   }
 
-  async function handleSocialLogin(provider: AuthProvider, providerName: string) {
+  async function handleSocialLogin(providerName: 'Google' | 'GitHub') {
     setSocialLoading(providerName);
     try {
+      let provider: AuthProvider;
+      if (providerName === 'Google') {
+        provider = new GoogleAuthProvider();
+      } else {
+        provider = new GithubAuthProvider();
+      }
       await signInWithPopup(auth, provider);
       handleSuccess();
     } catch (error: any) {
@@ -123,9 +126,7 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 disabled={!!isSocialLoading}
-                onClick={() =>
-                  handleSocialLogin(googleProvider, 'Google')
-                }
+                onClick={() => handleSocialLogin('Google')}
               >
                 {isSocialLoading === 'Google' ? (
                   <Loader2 className="animate-spin" />
@@ -137,9 +138,7 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 disabled={!!isSocialLoading}
-                onClick={() =>
-                  handleSocialLogin(githubProvider, 'GitHub')
-                }
+                onClick={() => handleSocialLogin('GitHub')}
               >
                 {isSocialLoading === 'GitHub' ? (
                   <Loader2 className="animate-spin" />
