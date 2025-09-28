@@ -4,7 +4,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  AuthProvider,
+} from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import {
   Card,
@@ -27,6 +33,8 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Icons } from '../icons';
+import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
@@ -35,6 +43,7 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -43,26 +52,55 @@ export default function LoginForm() {
     defaultValues: { email: '', password: '' },
   });
 
+  const handleSuccess = () => {
+    toast({
+      title: 'Success!',
+      description: "You've been successfully logged in.",
+    });
+    router.push('/');
+  };
+
+  const handleError = (error: any, provider?: string) => {
+    let description = 'An unexpected error occurred. Please try again.';
+    if (provider) {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        description =
+          'An account already exists with the same email address but different sign-in credentials.';
+      } else {
+        description = `Failed to sign in with ${provider}. Please try again.`;
+      }
+    } else if (error.code === 'auth/invalid-credential') {
+      description = 'Invalid email or password.';
+    }
+
+    toast({
+      variant: 'destructive',
+      title: 'Login Failed',
+      description,
+    });
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: 'Success!',
-        description: "You've been successfully logged in.",
-      });
-      router.push('/');
+      handleSuccess();
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description:
-          error.code === 'auth/invalid-credential'
-            ? 'Invalid email or password.'
-            : 'An unexpected error occurred. Please try again.',
-      });
+      handleError(error);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleSocialLogin(provider: AuthProvider, providerName: string) {
+    setSocialLoading(providerName);
+    try {
+      await signInWithPopup(auth, provider);
+      handleSuccess();
+    } catch (error: any) {
+      handleError(error, providerName);
+    } finally {
+      setSocialLoading(null);
     }
   }
 
@@ -71,12 +109,54 @@ export default function LoginForm() {
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription>
-          Enter your credentials to access your dashboard.
+          Enter your credentials or use a social provider.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                type="button"
+                disabled={!!isSocialLoading}
+                onClick={() =>
+                  handleSocialLogin(new GoogleAuthProvider(), 'Google')
+                }
+              >
+                {isSocialLoading === 'Google' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Icons.google className="size-5" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={!!isSocialLoading}
+                onClick={() =>
+                  handleSocialLogin(new GithubAuthProvider(), 'GitHub')
+                }
+              >
+                {isSocialLoading === 'GitHub' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Icons.github className="size-5" />
+                )}
+              </Button>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <FormField
               control={form.control}
               name="email"
@@ -88,6 +168,7 @@ export default function LoginForm() {
                       type="email"
                       placeholder="name@example.com"
                       {...field}
+                      disabled={!!isSocialLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -101,7 +182,12 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      disabled={!!isSocialLoading}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -109,9 +195,9 @@ export default function LoginForm() {
             />
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-4">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Login
+            <Button type="submit" disabled={isLoading || !!isSocialLoading}>
+              {isLoading && <Loader2 className="animate-spin" />}
+              Login with Email
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
