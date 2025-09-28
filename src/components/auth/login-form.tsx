@@ -41,6 +41,9 @@ const formSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
+
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
@@ -121,7 +124,7 @@ export default function LoginForm() {
                 type="button"
                 disabled={!!isSocialLoading}
                 onClick={() =>
-                  handleSocialLogin(new GoogleAuthProvider(), 'Google')
+                  handleSocialLogin(googleProvider, 'Google')
                 }
               >
                 {isSocialLoading === 'Google' ? (
@@ -135,7 +138,7 @@ export default function LoginForm() {
                 type="button"
                 disabled={!!isSocialLoading}
                 onClick={() =>
-                  handleSocialLogin(new GithubAuthProvider(), 'GitHub')
+                  handleSocialLogin(githubProvider, 'GitHub')
                 }
               >
                 {isSocialLoading === 'GitHub' ? (
