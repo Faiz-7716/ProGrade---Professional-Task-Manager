@@ -19,6 +19,7 @@ import {z} from 'genkit';
  */
 const GenerateLinkedInPostInputSchema = z.object({
   topic: z.string().describe('The topic or achievement to generate a LinkedIn post about.'),
+  tone: z.string().optional().describe('The desired tone for the post (e.g., Formal, Excited, Thankful).'),
 });
 export type GenerateLinkedInPostInput = z.infer<typeof GenerateLinkedInPostInputSchema>;
 
@@ -50,6 +51,7 @@ const generateLinkedInPostPrompt = ai.definePrompt({
   prompt: `You are a professional social media manager specializing in LinkedIn.
 
   Based on the provided topic or achievement, generate a professional LinkedIn post.
+  The post should be in a {{{tone "professional"}}} tone.
   Include relevant and trending hashtags to maximize reach and engagement. Make sure the post is engaging and well-written.
 
   Topic/Achievement: {{{topic}}}

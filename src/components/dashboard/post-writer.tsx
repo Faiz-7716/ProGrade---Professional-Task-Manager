@@ -25,6 +25,13 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { generatePostAction, suggestHashtagsAction } from '@/app/actions';
@@ -34,6 +41,7 @@ import { Badge } from '../ui/badge';
 
 const postSchema = z.object({
   topic: z.string().min(10, 'Please describe your topic in more detail.'),
+  tone: z.string().optional(),
 });
 
 const hashtagSchema = z.object({
@@ -49,7 +57,7 @@ function PostWriterForm() {
 
   const form = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
-    defaultValues: { topic: '' },
+    defaultValues: { topic: '', tone: 'Professional' },
   });
 
   async function onSubmit(values: z.infer<typeof postSchema>) {
@@ -81,6 +89,30 @@ function PostWriterForm() {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tone</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a tone" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Professional">Professional</SelectItem>
+                  <SelectItem value="Formal">Formal</SelectItem>
+                  <SelectItem value="Excited">Excited</SelectItem>
+                  <SelectItem value="Thankful">Thankful</SelectItem>
+                  <SelectItem value="Motivational">Motivational</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
