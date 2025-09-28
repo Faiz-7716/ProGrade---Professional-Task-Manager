@@ -89,7 +89,7 @@ export default function SignUpForm() {
         values.password
       );
       handleSuccess();
-    } catch (error: any)_ {
+    } catch (error: any) {
       handleError(error);
     } finally {
       setIsLoading(false);
