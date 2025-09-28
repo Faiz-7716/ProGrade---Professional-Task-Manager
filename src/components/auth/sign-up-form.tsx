@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -67,7 +66,7 @@ export default function SignUpForm() {
         description =
           'An account already exists with the same email address but different sign-in credentials. Please log in with the original method.';
       } else {
-        description = `Failed to sign up with ${provider}. Please check your Firebase project configuration.`;
+        description = `Failed to sign up with ${provider}. Please check your Firebase project configuration and try again later.`;
       }
     } else if (error.code === 'auth/email-already-in-use') {
       description = 'This email is already associated with an account. Please log in instead.';
@@ -102,6 +101,9 @@ export default function SignUpForm() {
       let provider: AuthProvider;
       if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: 'select_account'
+        });
       } else {
         provider = new GithubAuthProvider();
       }

@@ -67,7 +67,7 @@ export default function LoginForm() {
         description =
           'An account already exists with the same email address but different sign-in credentials.';
       } else {
-        description = `Failed to sign in with ${provider}. Please try again.`;
+        description = `Failed to sign in with ${provider}. Please check your Firebase project configuration and try again later.`;
       }
     } else if (error.code === 'auth/invalid-credential') {
       description = 'Invalid email or password.';
@@ -98,6 +98,9 @@ export default function LoginForm() {
       let provider: AuthProvider;
       if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: 'select_account'
+        });
       } else {
         provider = new GithubAuthProvider();
       }
