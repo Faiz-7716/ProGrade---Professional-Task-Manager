@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
@@ -12,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import EventForm from '@/components/scheduler/event-form';
-import EventList from '@/components/scheduler/event-list';
+import AllEventsList from '@/components/scheduler/all-events-list';
 import {
   useUser,
   useFirestore,
@@ -21,7 +20,7 @@ import {
 } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import { ScheduledEvent } from '@/lib/types';
-import { DayPicker, DayContentProps, DayProps } from 'react-day-picker';
+import { DayContentProps, DayProps } from 'react-day-picker';
 
 export default function SchedulerPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -67,10 +66,10 @@ export default function SchedulerPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold font-headline mb-2">
-            Scheduler
+            Scheduler & Action Plan
           </h1>
           <p className="text-muted-foreground">
-            Manage your events, tasks, and appointments.
+            Manage your events, tasks, and view your upcoming action plan.
           </p>
         </div>
         <Popover>
@@ -107,9 +106,9 @@ export default function SchedulerPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <EventList selectedDate={formattedDate} />
+          <AllEventsList />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
           <EventForm selectedDate={formattedDate} key={formattedDate} />
         </div>
       </div>

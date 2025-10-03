@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -7,7 +6,6 @@ import {
   Home,
   Lightbulb,
   PenSquare,
-  ListChecks,
   User,
   LogOut,
   Settings,
@@ -49,7 +47,6 @@ const navLinks = [
   { href: '/scheduler', label: 'Scheduler', icon: CalendarDays },
   { href: '/profile-optimizer', label: 'Profile Optimizer', icon: Lightbulb },
   { href: '/content-studio', label: 'Content Studio', icon: PenSquare },
-  { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
   { href: '/quiz-generator', label: 'Quiz Generator', icon: BrainCircuit },
   { href: '/quiz-history', label: 'Quiz History', icon: History },
