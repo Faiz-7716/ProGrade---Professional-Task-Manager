@@ -21,6 +21,7 @@ import {
 } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import { JournalEntry } from '@/lib/types';
+import { DayContentProps } from 'react-day-picker';
 
 export default function DailyJournalPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -41,6 +42,18 @@ export default function DailyJournalPage() {
   }, [allEntries]);
 
   const formattedDate = format(selectedDate, 'yyyy-MM-dd');
+  
+  const DayContent = (props: DayContentProps) => {
+    const isScheduled = props.activeModifiers.scheduled;
+    return (
+      <div className="relative flex items-center justify-center h-full w-full">
+        {props.dayNumber}
+        {isScheduled && (
+          <div className="absolute bottom-1 h-1 w-1 rounded-full bg-primary" />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -76,24 +89,7 @@ export default function DailyJournalPage() {
               selected={selectedDate}
               onSelect={(day) => day && setSelectedDate(day)}
               modifiers={{ scheduled: scheduledDays }}
-              modifiersStyles={{
-                scheduled: {
-                  position: 'relative',
-                },
-              }}
-              components={{
-                DayContent: (props) => {
-                  const isScheduled = props.activeModifiers.scheduled;
-                  return (
-                    <div className="relative">
-                      {props.dayNumber}
-                      {isScheduled && (
-                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
-                      )}
-                    </div>
-                  );
-                },
-              }}
+              components={{ DayContent }}
               initialFocus
             />
           </PopoverContent>
