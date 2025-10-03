@@ -8,57 +8,57 @@ body {
 
 @layer base {
   :root {
-    --background: 44 33% 96%; /* Lighter version of EAFFD0 for clean background */
-    --foreground: 240 10% 3.9%;
-    --card: 44 33% 98%; /* Slightly whiter for cards */
-    --card-foreground: 240 10% 3.9%;
-    --popover: 44 33% 98%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 172 56% 70%; /* #95E1D3 */
-    --primary-foreground: 240 10% 3.9%;
-    --secondary: 82 96% 91%; /* #EAFFD0 */
-    --secondary-foreground: 240 10% 3.9%;
-    --muted: 82 96% 91%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 45 95% 76%; /* #FCE38A */
-    --accent-foreground: 240 10% 3.9%;
-    --destructive: 0 84% 75%; /* #F38181 */
+    --background: 40 33% 95%; /* #F6F4EB */
+    --foreground: 220 13% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 20%;
+    --primary: 207 44% 49%; /* #4682A9 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 33% 80%; /* Lighter version of 749BC2 for secondary */
+    --secondary-foreground: 220 13% 20%;
+    --muted: 202 59% 90%; /* Lighter version of 91C8E4 for muted */
+    --muted-foreground: 220 9% 46%;
+    --accent: 202 59% 76%; /* #91C8E4 */
+    --accent-foreground: 220 13% 20%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 172 20% 85%;
-    --input: 172 20% 85%;
-    --ring: 172 56% 70%; /* #95E1D3 */
-    --chart-1: 172 56% 70%; /* Teal */
-    --chart-2: 0 84% 75%;   /* Coral */
-    --chart-3: 45 95% 76%;   /* Yellow */
-    --chart-4: 240 4% 46%;
-    --chart-5: 82 96% 91%;   /* Mint */
+    --border: 214 33% 67%; /* #749BC2 */
+    --input: 214 33% 67%; /* #749BC2 */
+    --ring: 207 44% 49%; /* #4682A9 */
+    --chart-1: 207 44% 49%;
+    --chart-2: 214 33% 67%;
+    --chart-3: 202 59% 76%;
+    --chart-4: 220 9% 46%;
+    --chart-5: 202 59% 90%;
     --radius: 0.5rem;
   }
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 172 56% 70%; /* #95E1D3 */
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 45 95% 76%; /* #FCE38A */
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 75%; /* #F38181 */
-    --destructive-foreground: 222 47% 11%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 172 56% 70%; /* #95E1D3 */
-    --chart-1: 172 56% 70%; /* Teal */
-    --chart-2: 0 84% 75%;   /* Coral */
-    --chart-3: 45 95% 76%;   /* Yellow */
-    --chart-4: 215 20% 65%;
-    --chart-5: 222 47% 11%;
+    --background: 220 13% 10%;
+    --foreground: 40 33% 95%;
+    --card: 220 13% 15%;
+    --card-foreground: 40 33% 95%;
+    --popover: 220 13% 10%;
+    --popover-foreground: 40 33% 95%;
+    --primary: 207 44% 49%; /* #4682A9 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 33% 25%;
+    --secondary-foreground: 40 33% 95%;
+    --muted: 202 59% 20%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 202 59% 76%; /* #91C8E4 - kept lighter for dark mode accent */
+    --accent-foreground: 220 13% 10%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214 33% 30%;
+    --input: 214 33% 30%;
+    --ring: 207 44% 49%; /* #4682A9 */
+    --chart-1: 207 44% 49%;
+    --chart-2: 214 33% 67%;
+    --chart-3: 202 59% 76%;
+    --chart-4: 210 20% 65%;
+    --chart-5: 220 13% 15%;
   }
 }
 
