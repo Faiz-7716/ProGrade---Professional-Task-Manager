@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import TodoList from '@/components/dashboard/todo-list';
 
 export default function Home() {
   const { user } = useAuth();
@@ -58,6 +59,7 @@ export default function Home() {
         <AboutSectionCreator />
         <PostWriter />
         <ResumeParser />
+        <TodoList />
         <ConnectionTemplates />
       </div>
     </div>
