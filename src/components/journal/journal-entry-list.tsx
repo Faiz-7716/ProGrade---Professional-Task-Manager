@@ -14,17 +14,16 @@ import {
   useCollection,
   useMemoFirebase,
 } from '@/firebase';
-import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { JournalEntry } from '@/lib/types';
 import { Button } from '../ui/button';
-import { BookMarked, Trash2, Edit, Sparkles, Loader2 } from 'lucide-react';
+import { BookMarked, Trash2, Edit, Sparkles, Loader2, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import EditJournalEntryDialog from './edit-journal-entry-dialog';
 import { provideJournalFeedbackAction } from '@/app/actions';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
-import { Checkbox } from '../ui/checkbox';
 
 interface JournalFeedback {
     advice: string[];
@@ -32,6 +31,38 @@ interface JournalFeedback {
 }
 
 function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [addingTaskId, setAddingTaskId] = useState<string | null>(null);
+
+    const handleAddTask = async (taskTitle: string) => {
+        if (!user || !firestore) return;
+
+        setAddingTaskId(taskTitle);
+        try {
+            const todosCollection = collection(firestore, 'users', user.uid, 'todos');
+            await addDoc(todosCollection, {
+                title: taskTitle,
+                userId: user.uid,
+                status: 'pending',
+                createdAt: serverTimestamp(),
+            });
+            toast({
+                title: "Task Added!",
+                description: `"${taskTitle}" has been added to your Action Plan.`
+            });
+        } catch (error) {
+             toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to add task to your plan."
+            });
+        } finally {
+            setAddingTaskId(null);
+        }
+    }
+
     return (
         <Alert className="mt-4">
             <Sparkles className="h-4 w-4" />
@@ -51,10 +82,14 @@ function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
                         <div className="space-y-2 mt-2">
                             {feedback.tasks.map((task, index) => (
                                 <div key={`task-${index}`} className="flex items-center gap-2">
-                                    <Checkbox id={`task-${index}-${Date.now()}`} />
-                                    <label htmlFor={`task-${index}-${Date.now()}`} className="text-xs font-normal">
-                                        {task}
-                                    </label>
+                                     <p className="text-xs font-normal flex-grow">{task}</p>
+                                     <Button size="sm" variant="ghost" onClick={() => handleAddTask(task)} disabled={addingTaskId === task}>
+                                        {addingTaskId === task ? (
+                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                        ) : (
+                                            <PlusCircle className="h-4 w-4" />
+                                        )}
+                                     </Button>
                                 </div>
                             ))}
                         </div>
@@ -175,6 +210,10 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
       />
     </div>
   );
+}
+
+interface JournalEntryListProps {
+    selectedDate: string;
 }
 
 export default function JournalEntryList({

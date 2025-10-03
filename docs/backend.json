@@ -175,6 +175,32 @@
         "firstName",
         "lastName"
       ]
+    },
+    "Todo": {
+        "title": "Todo",
+        "type": "object",
+        "description": "Represents a single to-do item for a user.",
+        "properties": {
+            "userId": {
+                "type": "string",
+                "description": "The ID of the user who owns this to-do item."
+            },
+            "title": {
+                "type": "string",
+                "description": "The content of the to-do item."
+            },
+            "status": {
+                "type": "string",
+                "description": "The current status of the to-do item.",
+                "enum": ["pending", "completed"]
+            },
+            "createdAt": {
+                "type": "string",
+                "description": "The timestamp when the to-do item was created.",
+                "format": "date-time"
+            }
+        },
+        "required": ["userId", "title", "status", "createdAt"]
     }
   },
   "auth": {
@@ -246,8 +272,28 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/todos/{todoId}",
+        "definition": {
+          "entityName": "Todo",
+          "schema": {
+            "$ref": "#/backend/entities/Todo"
+          },
+          "description": "Stores to-do items for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "todoId",
+              "description": "The unique identifier of the to-do item."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user."
+    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user.\n* `/users/{userId}/todos/{todoId}`: Stores to-do items for each user."
   }
 }
