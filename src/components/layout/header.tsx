@@ -38,16 +38,19 @@ function NavLink({
   href,
   label,
   isMobile = false,
+  onClick,
 }: {
   href: string;
   label: string;
   isMobile?: boolean;
+  onClick?: () => void;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href;
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={cn(
         'text-sm font-medium transition-colors',
         isActive
@@ -129,9 +132,11 @@ export default function Header() {
                     <p className="font-medium truncate">{user.email}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <UserIcon className="mr-2" />
-                    Profile
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                        <UserIcon className="mr-2" />
+                        Profile
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -175,6 +180,7 @@ export default function Header() {
                           href={link.href}
                           label={link.label}
                           isMobile
+                          onClick={() => setIsMobileMenuOpen(false)}
                         />
                       ))}
                     </nav>
