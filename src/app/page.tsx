@@ -1,11 +1,12 @@
 'use client';
+import { useEffect } from 'react';
+import { redirect } from 'next/navigation';
 import ProfileStrength from '@/components/dashboard/profile-strength';
 import DailyGrowth from '@/components/dashboard/daily-growth';
 import ConnectionTemplates from '@/components/dashboard/connection-templates';
 import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Lightbulb, PenSquare, ListChecks } from 'lucide-react';
+import { Lightbulb, PenSquare, ListChecks } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function QuickLink({
@@ -28,27 +29,19 @@ function QuickLink({
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  if (!user) {
+  useEffect(() => {
+    if (!loading && !user) {
+      redirect('/login');
+    }
+  }, [user, loading]);
+
+  // While loading or redirecting, you can show a loader or nothing
+  if (loading || !user) {
     return (
-      <div className="container mx-auto text-center py-20">
-        <h1 className="text-4xl font-bold font-headline mb-4">
-          Welcome to LinkedSpark
-        </h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          Your AI-powered assistant for supercharging your LinkedIn presence.
-        </p>
-        <div className="space-x-4">
-          <Button asChild>
-            <Link href="/login">
-              Login to Your Account <ArrowRight className="ml-2" />
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/sign-up">Create an Account</Link>
-          </Button>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        {/* You can add a loading spinner here if you want */}
       </div>
     );
   }
