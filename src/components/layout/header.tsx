@@ -25,6 +25,7 @@ const navLinks = [
   { href: '/', label: 'Dashboard' },
   { href: '/profile-optimizer', label: 'Profile Optimizer' },
   { href: '/content-studio', label: 'Content Studio' },
+  { href: '/action-plan', label: 'Action Plan' },
 ];
 
 function NavLink({ href, label }: { href: string; label: string }) {

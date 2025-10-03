@@ -5,8 +5,7 @@ import ConnectionTemplates from '@/components/dashboard/connection-templates';
 import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Lightbulb, PenSquare } from 'lucide-react';
-import TodoList from '@/components/dashboard/todo-list';
+import { ArrowRight, Lightbulb, PenSquare, ListChecks } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function QuickLink({
@@ -72,14 +71,18 @@ export default function Home() {
           title="Content Studio"
           icon={PenSquare}
         />
-        <ProfileStrength />
+        <QuickLink
+          href="/action-plan"
+          title="Action Plan"
+          icon={ListChecks}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <DailyGrowth />
         </div>
-        <TodoList />
+        <ProfileStrength />
       </div>
 
       <div className="mt-6">
