@@ -11,19 +11,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const noHeaderPaths = ['/login', '/sign-up'];
   const showHeader = user && !noHeaderPaths.includes(pathname);
 
-  if (!user && !noHeaderPaths.includes(pathname)) {
-    return (
-      <>
-        <Header />
-        <main className="flex-1">{children}</main>
-      </>
-    );
-  }
-  
+  // When not logged in and on a public page like login/signup, we don't want the main layout.
+  // The useAuth hook handles the loading state.
   if (!user && noHeaderPaths.includes(pathname)) {
-     return <main className="flex-1">{children}</main>;
+    return <main className="flex-1">{children}</main>;
   }
 
+  // For all other cases (logged in, or loading, or on public homepage)
   return (
     <>
       {showHeader && <Header />}
