@@ -1,7 +1,7 @@
 
 'use client';
-import { useState } from 'react';
-import { format } from 'date-fns';
+import { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -13,9 +13,32 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import JournalEntryForm from '@/components/journal/journal-entry-form';
 import JournalEntryList from '@/components/journal/journal-entry-list';
+import {
+  useUser,
+  useFirestore,
+  useCollection,
+  useMemoFirebase,
+} from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import { JournalEntry } from '@/lib/types';
 
 export default function DailyJournalPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const allEntriesQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'users', user.uid, 'journalEntries'));
+  }, [user, firestore]);
+
+  const { data: allEntries } = useCollection<JournalEntry>(allEntriesQuery);
+
+  const scheduledDays = useMemoFirebase(() => {
+    return allEntries
+      ? allEntries.map((entry) => parseISO(entry.entryDate))
+      : [];
+  }, [allEntries]);
 
   const formattedDate = format(selectedDate, 'yyyy-MM-dd');
 
@@ -52,6 +75,25 @@ export default function DailyJournalPage() {
               mode="single"
               selected={selectedDate}
               onSelect={(day) => day && setSelectedDate(day)}
+              modifiers={{ scheduled: scheduledDays }}
+              modifiersStyles={{
+                scheduled: {
+                  position: 'relative',
+                },
+              }}
+              components={{
+                DayContent: (props) => {
+                  const isScheduled = props.activeModifiers.scheduled;
+                  return (
+                    <div className="relative">
+                      {props.dayNumber}
+                      {isScheduled && (
+                        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
+                      )}
+                    </div>
+                  );
+                },
+              }}
               initialFocus
             />
           </PopoverContent>
@@ -60,7 +102,7 @@ export default function DailyJournalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-            <JournalEntryList selectedDate={formattedDate} />
+          <JournalEntryList selectedDate={formattedDate} />
         </div>
         <div className="lg:col-span-1">
           <JournalEntryForm selectedDate={formattedDate} key={formattedDate} />
