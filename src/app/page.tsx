@@ -1,16 +1,32 @@
 'use client';
 import ProfileStrength from '@/components/dashboard/profile-strength';
 import DailyGrowth from '@/components/dashboard/daily-growth';
-import HeadlineGenerator from '@/components/dashboard/headline-generator';
-import AboutSectionCreator from '@/components/dashboard/about-section-creator';
-import PostWriter from '@/components/dashboard/post-writer';
 import ConnectionTemplates from '@/components/dashboard/connection-templates';
-import ResumeParser from '@/components/dashboard/resume-parser';
 import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Lightbulb, PenSquare } from 'lucide-react';
 import TodoList from '@/components/dashboard/todo-list';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+function QuickLink({
+  href,
+  title,
+  icon: Icon,
+}: {
+  href: string;
+  title: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <Link href={href}>
+      <div className="p-6 bg-card hover:bg-muted rounded-lg border transition-all h-full flex flex-col justify-center items-center text-center">
+        <Icon className="h-8 w-8 mb-2 text-primary" />
+        <h3 className="font-semibold">{title}</h3>
+      </div>
+    </Link>
+  );
+}
 
 export default function Home() {
   const { user } = useAuth();
@@ -42,24 +58,31 @@ export default function Home() {
     <div className="container mx-auto p-4 md:p-8">
       <h1 className="text-3xl font-bold font-headline mb-2">Dashboard</h1>
       <p className="text-muted-foreground mb-8">
-        Your AI-powered assistant for LinkedIn growth.
+        Welcome back! Here's your LinkedIn growth overview.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-1">
-          <ProfileStrength />
-        </div>
+        <QuickLink
+          href="/profile-optimizer"
+          title="Profile Optimizer"
+          icon={Lightbulb}
+        />
+        <QuickLink
+          href="/content-studio"
+          title="Content Studio"
+          icon={PenSquare}
+        />
+        <ProfileStrength />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <DailyGrowth />
         </div>
+        <TodoList />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <HeadlineGenerator />
-        <AboutSectionCreator />
-        <PostWriter />
-        <ResumeParser />
-        <TodoList />
+      <div className="mt-6">
         <ConnectionTemplates />
       </div>
     </div>
