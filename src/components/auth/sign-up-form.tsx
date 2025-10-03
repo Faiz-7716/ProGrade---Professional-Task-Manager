@@ -11,7 +11,7 @@ import {
   GithubAuthProvider,
   AuthProvider,
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useAuth } from '@/firebase';
 import {
   Card,
   CardContent,
@@ -45,6 +45,7 @@ export default function SignUpForm() {
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

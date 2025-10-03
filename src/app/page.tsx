@@ -4,11 +4,12 @@ import { redirect } from 'next/navigation';
 import ProfileStrength from '@/components/dashboard/profile-strength';
 import DailyGrowth from '@/components/dashboard/daily-growth';
 import ConnectionTemplates from '@/components/dashboard/connection-templates';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser } from '@/firebase';
 import Link from 'next/link';
 import { Lightbulb, PenSquare, ListChecks, ArrowUpRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function QuickLinkCard({
   href,
@@ -41,20 +42,41 @@ function QuickLinkCard({
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <header className="sticky top-0 z-40 w-full border-b bg-card">
+        <div className="container flex h-16 items-center justify-between">
+          <div className="flex gap-4 items-center">
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+          <Skeleton className="h-10 w-10 rounded-full" />
+        </div>
+      </header>
+      <main className="flex-1 container mx-auto p-4 md:p-8">
+         <Skeleton className="h-8 w-48 mb-2" />
+         <Skeleton className="h-4 w-72 mb-8" />
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Skeleton className="h-64 rounded-lg" />
+          <Skeleton className="h-64 rounded-lg lg:col-span-2" />
+         </div>
+      </main>
+    </div>
+  );
+}
+
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, isUserLoading } = useUser();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        {/* The AuthProvider shows a skeleton loader, so this can be empty */}
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      redirect('/login');
+    }
+  }, [user, isUserLoading]);
 
-  if (!user) {
-    redirect('/login');
-    return null; // Return null to prevent rendering anything while redirecting
+  if (isUserLoading || !user) {
+    return <DashboardSkeleton />;
   }
 
   return (

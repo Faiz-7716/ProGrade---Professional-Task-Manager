@@ -27,9 +27,8 @@ import { type GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Progress } from '../ui/progress';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   learningTopic: z
@@ -41,7 +40,7 @@ type QuizState = 'idle' | 'loading' | 'error' | 'in_progress' | 'completed';
 type AnswerState = 'unanswered' | 'correct' | 'incorrect';
 
 export default function QuizGenerator() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const firestore = useFirestore();
   const [quiz, setQuiz] = useState<GenerateQuizOutput | null>(null);
   const [quizState, setQuizState] = useState<QuizState>('idle');
@@ -83,7 +82,7 @@ export default function QuizGenerator() {
   }
 
   const saveQuizHistory = async () => {
-    if (!user || !quiz) return;
+    if (!user || !quiz || !firestore) return;
     try {
       const quizHistoryRef = collection(
         firestore,
@@ -163,7 +162,7 @@ export default function QuizGenerator() {
                 name="learningTopic"
                 render={({ field }) => (
                   <FormItem>
-                    <label>What did you learn today?</label>
+                    <FormLabel>What did you learn today?</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="e.g., I learned about the Next.js App Router, how server components work, and the difference between server-side and client-side rendering..."

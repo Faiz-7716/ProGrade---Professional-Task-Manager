@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useAuth } from '@/hooks/use-auth';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import {
   Card,
@@ -67,11 +66,11 @@ function PerformanceBadge({
 }
 
 export default function QuizHistoryPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
 
   const quizHistoryQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(
       collection(firestore, 'users', user.uid, 'quiz_history'),
       orderBy('completionDate', 'desc')

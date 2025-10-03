@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useAuth } from '@/hooks/use-auth';
+import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
@@ -10,12 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { User as UserIcon, Mail, LogOut, Edit, KeyRound, Calendar } from 'lucide-react';
 import { signOut, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const userAvatar = getPlaceholderImage('user-avatar');
   const router = useRouter();
   const { toast } = useToast();
@@ -53,7 +53,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) {
+  if (isUserLoading) {
     return (
       <div className="container mx-auto p-4 md:p-8 max-w-2xl">
         <div className="flex items-center gap-6">

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Icons } from '../icons';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import {
@@ -37,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+
 
 const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -75,7 +75,8 @@ function NavLink({
 }
 
 export default function Sidebar() {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const auth = useAuth();
   const userAvatar = getPlaceholderImage('user-avatar');
 
   const handleLogout = async () => {

@@ -1,11 +1,11 @@
 'use client';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
+import { useUser } from '@/firebase';
 import Sidebar from './sidebar';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user } = useUser();
 
   const noNavPaths = ['/login', '/sign-up'];
   const showSidebar = user && !noNavPaths.includes(pathname);
