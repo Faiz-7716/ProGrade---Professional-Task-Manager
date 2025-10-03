@@ -2,107 +2,104 @@
  * @fileoverview Firestore Security Rules for Prograde application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Each user's data (courses, quiz history, journal entries, and scheduled events)
- * is stored under their respective user ID in Firestore.  Only the authenticated user can access their own data.
+ * This ruleset enforces a strict user-ownership model for all data. Each user can only
+ * access their own data, and no data can be accessed without authentication.
  *
  * Data Structure:
- * All data is nested under `/users/{userId}`, which ensures data isolation and simplified security rules.
+ * All data is nested under /users/{userId}, with subcollections for scheduledEvents,
+ * journalEntries, courses, and quiz_history. This structure ensures clear ownership
+ * and allows for efficient querying of user-specific data.
  *
  * Key Security Decisions:
- * - Users can only access their own data. There are no shared documents or roles.
- * - User listing is not allowed.
+ * - User listing is disallowed to prevent enumeration.
+ * - All subcollections inherit the user-ownership constraint from the /users/{userId} path.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Checks if the request is authenticated.
-     */
+    // Helper function to check if the user is signed in
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the authenticated user ID matches the provided user ID.
-     * @param {string} userId - The user ID to compare against the authenticated user's UID.
-     * @return {bool} - True if the user IDs match, false otherwise.
-     */
+    // Helper function to check if the authenticated user is the owner of the resource
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the authenticated user is the owner of an existing document.
-     * @param {string} userId - The user ID of the document's owner.
-     * @return {bool} - True if the user is the owner and the document exists.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description Enforces document ownership for writes.
-     * @path /users/{userId}/quiz_history/{quizHistoryId}
-     * @allow (create) User 'user123' can create a quiz history document under /users/user123/quiz_history/quiz1.
-     * @deny (create) User 'user456' cannot create a quiz history document under /users/user123/quiz_history/quiz1.
+     * @description Rules for the /users/{userId} document.
+     * @path /users/{userId}
+     * @allow (create) User with ID 'test_user' can create their own user document.
+     * @deny (create) User with ID 'another_user' cannot create a document under 'test_user'.
      * @principle Enforces document ownership for writes.
      */
-    match /users/{userId}/quiz_history/{quizHistoryId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
+    match /users/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
 
-    /**
-     * @description Enforces document ownership for writes.
-     * @path /users/{userId}/courses/{courseId}
-     * @allow (create) User 'user123' can create a course document under /users/user123/courses/course1.
-     * @deny (create) User 'user456' cannot create a course document under /users/user123/courses/course1.
-     * @principle Enforces document ownership for writes.
-     */
-    match /users/{userId}/courses/{courseId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Enforces document ownership for journal entries.
-     * @path /users/{userId}/journalEntries/{entryId}
-     * @allow (create) User 'user123' can create a journal entry document under /users/user123/journalEntries/entry1.
-     * @deny (create) User 'user456' cannot create a journal entry document under /users/user123/journalEntries/entry1.
-     * @principle Enforces document ownership for writes.
-     */
-    match /users/{userId}/journalEntries/{entryId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Enforces document ownership for scheduled events.
-     * @path /users/{userId}/scheduledEvents
-     * @allow (list) User 'user123' can list scheduled event documents under /users/user123/scheduledEvents
-     * @path /users/{userId}/scheduledEvents/{eventId}
-     * @allow (create) User 'user123' can create a scheduled event document under /users/user123/scheduledEvents/event1.
-     * @deny (create) User 'user456' cannot create a scheduled event document under /users/user123/scheduledEvents/event1.
-     * @principle Enforces document ownership for writes.
-     */
-    match /users/{userId}/scheduledEvents {
-      allow list: if isOwner(userId);
-
-      match /{eventId} {
+      /**
+       * @description Rules for the /users/{userId}/scheduledEvents/{eventId} collection.
+       * @path /users/{userId}/scheduledEvents/{eventId}
+       * @allow (create) User with ID 'test_user' can create a scheduled event under their user document.
+       * @deny (create) User with ID 'another_user' cannot create a scheduled event under 'test_user'.
+       * @principle Enforces document ownership for writes.
+       */
+      match /scheduledEvents/{eventId} {
         allow get: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * @description Rules for the /users/{userId}/journalEntries/{entryId} collection.
+       * @path /users/{userId}/journalEntries/{entryId}
+       * @allow (create) User with ID 'test_user' can create a journal entry under their user document.
+       * @deny (create) User with ID 'another_user' cannot create a journal entry under 'test_user'.
+       * @principle Enforces document ownership for writes.
+       */
+      match /journalEntries/{entryId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * @description Rules for the /users/{userId}/courses/{courseId} collection.
+       * @path /users/{userId}/courses/{courseId}
+       * @allow (create) User with ID 'test_user' can create a course under their user document.
+       * @deny (create) User with ID 'another_user' cannot create a course under 'test_user'.
+       * @principle Enforces document ownership for writes.
+       */
+      match /courses/{courseId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+
+      /**
+       * @description Rules for the /users/{userId}/quiz_history/{quizHistoryId} collection.
+       * @path /users/{userId}/quiz_history/{quizHistoryId}
+       * @allow (create) User with ID 'test_user' can create a quiz history entry under their user document.
+       * @deny (create) User with ID 'another_user' cannot create a quiz history entry under 'test_user'.
+       * @principle Enforces document ownership for writes.
+       */
+      match /quiz_history/{quizHistoryId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
       }
     }
   }
