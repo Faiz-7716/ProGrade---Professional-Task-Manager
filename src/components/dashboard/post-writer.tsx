@@ -57,7 +57,11 @@ function PostWriterForm() {
 
   const form = useForm<z.infer<typeof postSchema>>({
     resolver: zodResolver(postSchema),
-    defaultValues: { topic: '', tone: 'Professional' },
+    defaultValues: {
+      topic:
+        'I am excited to share that I won first place in the [Competition Name] for [Project/Skill]! It was a great experience competing with so many talented students.',
+      tone: 'Excited',
+    },
   });
 
   async function onSubmit(values: z.infer<typeof postSchema>) {
@@ -84,7 +88,7 @@ function PostWriterForm() {
               <FormLabel>What is the topic of your post?</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="e.g., Announcing my new certification in Google Cloud, or sharing key takeaways from a recent marketing conference."
+                  placeholder="e.g., Thrilled to announce I won first place in the annual university hackathon! It was an amazing experience developing a project focused on sustainability."
                   rows={4}
                   {...field}
                 />
@@ -106,9 +110,9 @@ function PostWriterForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="Excited">Excited</SelectItem>
                   <SelectItem value="Professional">Professional</SelectItem>
                   <SelectItem value="Formal">Formal</SelectItem>
-                  <SelectItem value="Excited">Excited</SelectItem>
                   <SelectItem value="Thankful">Thankful</SelectItem>
                   <SelectItem value="Motivational">Motivational</SelectItem>
                 </SelectContent>
