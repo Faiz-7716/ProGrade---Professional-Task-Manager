@@ -6,25 +6,38 @@ import DailyGrowth from '@/components/dashboard/daily-growth';
 import ConnectionTemplates from '@/components/dashboard/connection-templates';
 import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
-import { Lightbulb, PenSquare, ListChecks } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Lightbulb, PenSquare, ListChecks, ArrowUpRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-function QuickLink({
+function QuickLinkCard({
   href,
   title,
+  description,
   icon: Icon,
 }: {
   href: string;
   title: string;
+  description: string;
   icon: React.ElementType;
 }) {
   return (
-    <Link href={href}>
-      <div className="p-6 bg-card hover:bg-muted rounded-lg border transition-all h-full flex flex-col justify-center items-center text-center">
-        <Icon className="h-8 w-8 mb-2 text-primary" />
-        <h3 className="font-semibold">{title}</h3>
-      </div>
-    </Link>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-start justify-between">
+          <span>{title}</span>
+          <Icon className="h-5 w-5 text-muted-foreground" />
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button size="sm" asChild>
+          <Link href={href}>
+            Open <ArrowUpRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -46,25 +59,32 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <h1 className="text-3xl font-bold font-headline mb-2">Dashboard</h1>
-      <p className="text-muted-foreground mb-8">
-        Welcome back! Here's your LinkedIn growth overview.
-      </p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+           <h1 className="text-3xl font-bold font-headline mb-1">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's your LinkedIn growth overview.
+          </p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <QuickLink
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <QuickLinkCard
           href="/profile-optimizer"
           title="Profile Optimizer"
+          description="Tools to enhance your profile."
           icon={Lightbulb}
         />
-        <QuickLink
+        <QuickLinkCard
           href="/content-studio"
           title="Content Studio"
+          description="Craft engaging LinkedIn content."
           icon={PenSquare}
         />
-        <QuickLink
+        <QuickLinkCard
           href="/action-plan"
           title="Action Plan"
+          description="Your personal to-do list."
           icon={ListChecks}
         />
       </div>
