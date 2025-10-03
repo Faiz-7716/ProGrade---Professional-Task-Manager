@@ -204,9 +204,9 @@ export default function QuizGenerator() {
                     )}
                   >
                     <RadioGroupItem value={option} id={`option-${index}`} />
-                    <FormLabel htmlFor={`option-${index}`} className="font-normal w-full cursor-pointer">
+                    <label htmlFor={`option-${index}`} className="font-normal w-full cursor-pointer">
                       {option}
-                    </FormLabel>
+                    </label>
                     {answerState !== 'unanswered' && isCorrect && <Check className="h-5 w-5 text-green-500" />}
                     {answerState === 'incorrect' && isSelected && <X className="h-5 w-5 text-red-500" />}
                   </div>
