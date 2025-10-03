@@ -8,12 +8,11 @@ import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { redirect, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { User as UserIcon, Mail, LogOut, Edit, KeyRound } from 'lucide-react';
+import { User as UserIcon, Mail, LogOut, Edit, KeyRound, Calendar } from 'lucide-react';
 import { signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { Icons } from '@/components/icons';
-import Link from 'next/link';
+import { format } from 'date-fns';
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -71,6 +70,8 @@ export default function ProfilePage() {
   if (!user) {
     return redirect('/login');
   }
+  
+  const creationDate = user.metadata.creationTime ? format(new Date(user.metadata.creationTime), "PPP") : 'N/A';
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -89,10 +90,16 @@ export default function ProfilePage() {
                 <h1 className="text-3xl font-bold font-headline">
                 {user.displayName || 'Welcome!'}
                 </h1>
-                <p className="text-muted-foreground flex items-center gap-2 justify-center sm:justify-start">
-                    <Mail className="h-4 w-4" />
-                    {user.email}
-                </p>
+                <div className="text-muted-foreground mt-2 space-y-2">
+                  <p className="flex items-center gap-2 justify-center sm:justify-start">
+                      <Mail className="h-4 w-4" />
+                      {user.email}
+                  </p>
+                  <p className="flex items-center gap-2 justify-center sm:justify-start">
+                    <Calendar className="h-4 w-4" />
+                    Account created on {creationDate}
+                  </p>
+                </div>
             </div>
         </div>
 
