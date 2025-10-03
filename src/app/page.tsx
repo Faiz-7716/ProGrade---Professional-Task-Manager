@@ -31,19 +31,17 @@ function QuickLink({
 export default function Home() {
   const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      redirect('/login');
-    }
-  }, [user, loading]);
-
-  // While loading or redirecting, you can show a loader or nothing
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        {/* You can add a loading spinner here if you want */}
+        {/* The AuthProvider shows a skeleton loader, so this can be empty */}
       </div>
     );
+  }
+
+  if (!user) {
+    redirect('/login');
+    return null; // Return null to prevent rendering anything while redirecting
   }
 
   return (
