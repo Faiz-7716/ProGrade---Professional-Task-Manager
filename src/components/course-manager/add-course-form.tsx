@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, PlusCircle } from 'lucide-react';
+import { ScrollArea } from '../ui/scroll-area';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Course name must be at least 3 characters.'),
@@ -37,7 +38,41 @@ const formSchema = z.object({
   estimatedHours: z.coerce.number().min(1, 'Estimated hours must be at least 1.'),
 });
 
-const platforms = ['Udemy', 'Tata', 'Cisco', 'IBM', 'FreeCodeCamp', 'Other'];
+const platforms = [
+    // General Learning / MOOCs
+    'Coursera',
+    'Udemy',
+    'edX',
+    'Khan Academy',
+    'Skillshare',
+    'FutureLearn',
+    'LinkedIn Learning',
+    // Coding / Tech Focused
+    'freeCodeCamp',
+    'Codecademy',
+    'LeetCode',
+    'HackerRank',
+    'Codewars',
+    'SoloLearn',
+    'Pluralsight',
+    // Professional / Corporate Skills
+    'IBM Skills Network',
+    'Tata STRIVE',
+    'Google Digital Garage',
+    'Microsoft Learn',
+    'Simplilearn',
+    // School / Academic Focused
+    'Byju’s',
+    'Toppr',
+    'Vedantu',
+    'Unacademy',
+    // Specialized / Niche
+    'DataCamp',
+    'Treehouse',
+    'Brilliant',
+    'Duolingo',
+    'Other',
+  ];
 
 export default function AddCourseForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -96,9 +131,11 @@ export default function AddCourseForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {platforms.map(p => (
-                        <SelectItem key={p} value={p}>{p}</SelectItem>
-                      ))}
+                      <ScrollArea className="h-72">
+                        {platforms.map(p => (
+                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        ))}
+                      </ScrollArea>
                     </SelectContent>
                   </Select>
                   <FormMessage />
