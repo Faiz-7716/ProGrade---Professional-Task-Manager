@@ -1,5 +1,6 @@
 // src/components/layout/header.tsx
 'use client';
+import { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
@@ -17,20 +18,38 @@ import {
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { LogOut, User as UserIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Header() {
   const { user } = useAuth();
   const userAvatar = getPlaceholderImage('user-avatar');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = async () => {
     await signOut(auth);
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-card">
+    <header
+      className={cn(
+        'sticky top-0 z-40 w-full transition-all duration-300',
+        isScrolled ? 'border-b bg-card/80 backdrop-blur-sm shadow-sm' : 'bg-transparent'
+      )}
+    >
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
         <div className="flex gap-4 items-center">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link
+            href="/"
+            className="flex items-center space-x-2 transition-transform duration-200 hover:scale-105"
+          >
             <Icons.logo className="h-8 w-8 text-primary" />
             <span className="font-bold text-lg font-headline">LinkedSpark</span>
           </Link>
@@ -39,7 +58,7 @@ export default function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="cursor-pointer">
+                <Avatar className="cursor-pointer transition-transform duration-200 hover:scale-110">
                   <AvatarImage
                     src={user.photoURL || userAvatar?.imageUrl}
                     alt={user.displayName || userAvatar?.description}
