@@ -23,11 +23,3 @@ export interface JournalEntry {
         notes: string;
     }[];
 }
-
-export interface Todo {
-    id: string;
-    userId: string;
-    title: string;
-    status: 'pending' | 'completed';
-    createdAt: Timestamp;
-}

@@ -14,11 +14,11 @@ import {
   useCollection,
   useMemoFirebase,
 } from '@/firebase';
-import { collection, query, where, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { JournalEntry } from '@/lib/types';
 import { Button } from '../ui/button';
-import { BookMarked, Trash2, Edit, Sparkles, Loader2, PlusCircle } from 'lucide-react';
+import { BookMarked, Trash2, Edit, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import EditJournalEntryDialog from './edit-journal-entry-dialog';
@@ -31,42 +31,10 @@ interface JournalFeedback {
 }
 
 function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
-    const { user } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const [addingTaskId, setAddingTaskId] = useState<string | null>(null);
-
-    const handleAddTask = async (taskTitle: string) => {
-        if (!user || !firestore) return;
-
-        setAddingTaskId(taskTitle);
-        try {
-            const todosCollection = collection(firestore, 'users', user.uid, 'todos');
-            await addDoc(todosCollection, {
-                title: taskTitle,
-                userId: user.uid,
-                status: 'pending',
-                createdAt: serverTimestamp(),
-            });
-            toast({
-                title: "Task Added!",
-                description: `"${taskTitle}" has been added to your Action Plan.`
-            });
-        } catch (error) {
-             toast({
-                variant: "destructive",
-                title: "Error",
-                description: "Failed to add task to your plan."
-            });
-        } finally {
-            setAddingTaskId(null);
-        }
-    }
-
     return (
         <Alert className="mt-4">
             <Sparkles className="h-4 w-4" />
-            <AlertTitle>AI Feedback & Action Plan</AlertTitle>
+            <AlertTitle>AI Feedback</AlertTitle>
             <AlertDescription>
                 <div className="space-y-4 mt-2">
                     <div>
@@ -78,19 +46,10 @@ function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
                         </ul>
                     </div>
                     <div>
-                        <h4 className="font-semibold text-foreground">Your To-Do List</h4>
-                        <div className="space-y-2 mt-2">
+                        <h4 className="font-semibold text-foreground">Suggested Tasks</h4>
+                        <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
                             {feedback.tasks.map((task, index) => (
-                                <div key={`task-${index}`} className="flex items-center gap-2">
-                                     <p className="text-xs font-normal flex-grow">{task}</p>
-                                     <Button size="sm" variant="ghost" onClick={() => handleAddTask(task)} disabled={addingTaskId === task}>
-                                        {addingTaskId === task ? (
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
-                                        ) : (
-                                            <PlusCircle className="h-4 w-4" />
-                                        )}
-                                     </Button>
-                                </div>
+                                <li key={`task-${index}`}>{task}</li>
                             ))}
                         </div>
                     </div>
