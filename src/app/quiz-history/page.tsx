@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -22,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Minus, BookOpenCheck, Target, Activity } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface QuizHistory {
   id: string;
