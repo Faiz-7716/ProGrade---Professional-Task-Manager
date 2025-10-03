@@ -30,40 +30,6 @@
       },
       "required": ["userId", "entryDate", "topicsLearned", "reflection", "createdAt"]
     },
-    "ScheduledEvent": {
-        "title": "Scheduled Event",
-        "type": "object",
-        "description": "Represents a scheduled event or task for a user.",
-        "properties": {
-            "userId": {
-                "type": "string",
-                "description": "The ID of the user who owns this event."
-            },
-            "eventDate": {
-                "type": "string",
-                "description": "The date for the event in YYYY-MM-DD format."
-            },
-            "title": {
-                "type": "string",
-                "description": "The title of the event or task."
-            },
-            "description": {
-                "type": "string",
-                "description": "A detailed description of the event."
-            },
-            "status": {
-                "type": "string",
-                "description": "The status of the event.",
-                "enum": ["Pending", "Completed"]
-            },
-            "createdAt": {
-                "type": "string",
-                "description": "The timestamp when the event was created.",
-                "format": "date-time"
-            }
-        },
-        "required": ["userId", "eventDate", "title", "status", "createdAt"]
-    },
     "Course": {
       "title": "Course",
       "type": "object",
@@ -265,28 +231,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/users/{userId}/scheduledEvents/{eventId}",
-        "definition": {
-          "entityName": "ScheduledEvent",
-          "schema": {
-            "$ref": "#/backend/entities/ScheduledEvent"
-          },
-          "description": "Stores scheduled events for each user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "eventId",
-              "description": "The unique identifier of the scheduled event."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user.\n*   `/users/{userId}/scheduledEvents/{eventId}`: Stores scheduled events and tasks for each user, separate from journal entries."
+    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user."
   }
 }
