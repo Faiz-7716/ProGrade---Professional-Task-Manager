@@ -1,69 +1,83 @@
 /**
- * @fileoverview Firestore Security Rules for LinkedSpark application.
+ * @fileoverview Firestore Security Rules for Prograde application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for quiz history data.
- * Each user can only access their own quiz history.
+ * This ruleset enforces a strict user-ownership model for all data stored under the /users/{userId} path.
+ * Only the authenticated user matching the {userId} segment can read or write data in their respective user data tree.
  *
  * Data Structure:
- * Quiz history data is nested under /users/{userId}/quiz_history/{quizHistoryId}.
- * This hierarchical structure is used to enforce ownership.
+ * - All user-specific data (courses, quiz history) is nested under the /users/{userId} collection.
+ * - This structure ensures that data is partitioned by user, enhancing security and query efficiency.
  *
  * Key Security Decisions:
- * - User listing is not allowed.
- * - All write operations are protected by ownership checks.
- * - Data validation is limited to relational integrity (userId matching path).
- * - Denormalization for Authorization: The `userId` does not need to be stored again in the quiz history document because it is already present in the parent collection.
+ * - User listing is implicitly disallowed by the ruleset structure.
+ * - No role-based access control is implemented in this version. All data access is strictly user-specific.
+ *
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces user-ownership for quiz history entries. Only the user can create, read, update, or delete their own quiz history.
+     * @description Checks if the request is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     * @param {string} userId - The user ID to compare against the authenticated user's UID.
+     * @return {bool} True if the user is signed in and the UID matches; false otherwise.
+     * @example isOwner('someUserId') will return true if request.auth.uid == 'someUserId'.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of an existing document.
+     * @param {string} userId - The user ID to compare against the authenticated user's UID.
+     * @return {bool} True if the user is signed in, the UID matches, and the document exists; false otherwise.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+
+    /**
+     * @description Secures the quiz_history collection for a specific user. Only the user can read, create, update, or delete their own quiz history entries.
      * @path /users/{userId}/quiz_history/{quizHistoryId}
-     * @allow (create) - User 'user123' creates a new quiz history entry under their own user ID.
-     *   request.auth.uid == 'user123' && request.resource.data.userId == 'user123'
-     * @allow (get) - User 'user123' reads their own quiz history entry.
-     *   request.auth.uid == 'user123'
-     * @allow (update) - User 'user123' updates their own quiz history entry.
-     *   request.auth.uid == 'user123'
-     * @allow (delete) - User 'user123' deletes their own quiz history entry.
-     *   request.auth.uid == 'user123'
-     * @deny (create) - User 'user456' attempts to create a quiz history entry under user 'user123'.
-     *   request.auth.uid == 'user456' && request.resource.data.userId == 'user123'
-     * @deny (get) - User 'user456' attempts to read a quiz history entry belonging to user 'user123'.
-     *   request.auth.uid == 'user456'
-     * @deny (update) - User 'user456' attempts to update a quiz history entry belonging to user 'user123'.
-     *   request.auth.uid == 'user456'
-     * @deny (delete) - User 'user456' attempts to delete a quiz history entry belonging to user 'user123'.
-     *   request.auth.uid == 'user456'
+     * @allow (create) User 'user123' can create a new quiz history entry under /users/user123/quiz_history/quiz1.
+     * @allow (get, list) User 'user123' can read their quiz history entries.
+     * @allow (update, delete) User 'user123' can update or delete an existing quiz history entry under /users/user123/quiz_history/quiz1.
+     * @deny (create) User 'user456' cannot create a quiz history entry under /users/user123/quiz_history/quiz1.
+     * @deny (get, list) User 'user456' cannot read quiz history entries under /users/user123/quiz_history/quiz1.
      * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/quiz_history/{quizHistoryId} {
-      // Helper function to check if the request is made by the owner of the user ID.
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      // Helper function to check if the request is made by the existing owner of the user ID.
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      // Allow reads (get) by the owner.
       allow get: if isOwner(userId);
-
-      // Allow listing quiz history by the owner.
       allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
 
-      // Allow creation only if the user is creating the document for themselves and the userId matches the path.
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-
-      // Allow updates only if the user is the owner and the userId is immutable.
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-
-      // Allow deletes only if the user is the owner.
+    /**
+     * @description Secures the courses collection for a specific user. Only the user can read, create, update, or delete their own courses.
+     * @path /users/{userId}/courses/{courseId}
+     * @allow (create) User 'user123' can create a new course under /users/user123/courses/course1.
+     * @allow (get, list) User 'user123' can read their courses.
+     * @allow (update, delete) User 'user123' can update or delete an existing course under /users/user123/courses/course1.
+     * @deny (create) User 'user456' cannot create a course under /users/user123/courses/course1.
+     * @deny (get, list) User 'user456' cannot read courses under /users/user123/courses/course1.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId}/courses/{courseId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
   }
