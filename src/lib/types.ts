@@ -16,7 +16,8 @@ export interface JournalEntry {
     userId: string;
     entryDate: string; // Stored as 'YYYY-MM-DD'
     topicsLearned: string;
-    nextSteps: string;
+    scheduledTasks: string;
+    reflection: string;
     status: 'Pending' | 'Completed';
     createdAt: Timestamp;
 }

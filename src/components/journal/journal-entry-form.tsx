@@ -42,9 +42,12 @@ const formSchema = z.object({
   topicsLearned: z
     .string()
     .min(10, 'Please describe what you learned in at least 10 characters.'),
-  nextSteps: z
+  scheduledTasks: z
     .string()
-    .min(10, 'Please describe your next steps in at least 10 characters.'),
+    .min(5, 'Please enter at least one task or event.'),
+  reflection: z
+    .string()
+    .min(10, 'Please describe your reflection in at least 10 characters.'),
 });
 
 interface JournalEntryFormProps {
@@ -64,7 +67,8 @@ export default function JournalEntryForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       topicsLearned: '',
-      nextSteps: '',
+      scheduledTasks: '',
+      reflection: '',
     },
   });
 
@@ -77,7 +81,7 @@ export default function JournalEntryForm({
     const fetchEntry = async () => {
       if (!journalEntriesCollection) return;
       
-      form.reset({ topicsLearned: '', nextSteps: '' });
+      form.reset({ topicsLearned: '', scheduledTasks: '', reflection: '' });
       setExistingEntry(null);
       setIsLoading(true);
 
@@ -93,7 +97,8 @@ export default function JournalEntryForm({
         setExistingEntry(entry);
         form.reset({
           topicsLearned: entry.topicsLearned,
-          nextSteps: entry.nextSteps,
+          scheduledTasks: entry.scheduledTasks,
+          reflection: entry.reflection,
         });
       }
       setIsLoading(false);
@@ -182,14 +187,31 @@ export default function JournalEntryForm({
             />
             <FormField
               control={form.control}
-              name="nextSteps"
+              name="scheduledTasks"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What are your next steps or tasks?</FormLabel>
+                  <FormLabel>Scheduled Tasks / Events</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Build a small project with custom hooks, start the 'Quiz Generator' feature..."
+                      placeholder="e.g., - College Event&#10;- Team meeting at 3 PM&#10;- Finish the 'Quiz Generator' feature"
                       rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="reflection"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Daily Reflection</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="e.g., Today was productive. I feel more confident with..."
+                      rows={3}
                       {...field}
                     />
                   </FormControl>

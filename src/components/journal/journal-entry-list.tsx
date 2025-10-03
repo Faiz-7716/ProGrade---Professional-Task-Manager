@@ -108,13 +108,17 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
       <div className="space-y-4">
         <div>
           <h4 className="font-semibold text-sm mb-1">Topics Learned</h4>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {entry.topicsLearned}
           </p>
         </div>
+         <div>
+          <h4 className="font-semibold text-sm mb-1">Scheduled Tasks</h4>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{entry.scheduledTasks}</p>
+        </div>
         <div>
-          <h4 className="font-semibold text-sm mb-1">Next Steps</h4>
-          <p className="text-sm text-muted-foreground">{entry.nextSteps}</p>
+          <h4 className="font-semibold text-sm mb-1">Reflection</h4>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{entry.reflection}</p>
         </div>
       </div>
     </div>

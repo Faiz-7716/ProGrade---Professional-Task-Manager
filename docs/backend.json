@@ -4,7 +4,7 @@
     "JournalEntry": {
       "title": "Journal Entry",
       "type": "object",
-      "description": "Represents a daily journal entry for a user to track learning and tasks.",
+      "description": "Represents a daily journal entry for a user to track learning, tasks, and reflections.",
       "properties": {
         "userId": {
           "type": "string",
@@ -18,9 +18,13 @@
           "type": "string",
           "description": "A summary of topics the user learned on this day."
         },
-        "nextSteps": {
+        "scheduledTasks": {
           "type": "string",
-          "description": "The user's plan for what to do next."
+          "description": "A list of tasks or events scheduled for the day."
+        },
+        "reflection": {
+          "type": "string",
+          "description": "The user's reflection or thoughts for the day."
         },
         "status": {
           "type": "string",
@@ -33,7 +37,7 @@
           "format": "date-time"
         }
       },
-      "required": ["userId", "entryDate", "topicsLearned", "nextSteps", "status", "createdAt"]
+      "required": ["userId", "entryDate", "topicsLearned", "scheduledTasks", "reflection", "status", "createdAt"]
     },
     "Course": {
       "title": "Course",
