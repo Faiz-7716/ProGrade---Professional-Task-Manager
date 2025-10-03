@@ -12,6 +12,7 @@ import {
   Settings,
   BookMarked,
   BrainCircuit,
+  History,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ const navLinks = [
   { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
   { href: '/quiz-generator', label: 'Quiz Generator', icon: BrainCircuit },
+  { href: '/quiz-history', label: 'Quiz History', icon: History },
 ];
 
 function NavLink({

@@ -6,13 +6,9 @@
       "type": "object",
       "description": "Stores the history of quizzes taken by users, including points, and answer statistics.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the quiz history entry."
-        },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N QuizHistory). The unique identifier of the user who took the quiz."
+          "description": "The unique identifier of the user who took the quiz."
         },
         "quizName": {
           "type": "string",
@@ -37,7 +33,6 @@
         }
       },
       "required": [
-        "id",
         "userId",
         "quizName",
         "points",

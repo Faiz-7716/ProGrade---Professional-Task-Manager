@@ -1,6 +1,7 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   projectId: 'studio-2384447676-2ec49',
@@ -16,8 +17,11 @@ const firebaseConfig = {
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
 
 const auth = getAuth(app);
+const firestore = getFirestore(app);
 
-export { app, auth };
+export { app, auth, firestore };
