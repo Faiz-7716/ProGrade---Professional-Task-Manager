@@ -17,10 +17,9 @@ import {
 import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { JournalEntry } from '@/lib/types';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Check, Trash2 } from 'lucide-react';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Trash2 } from 'lucide-react';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface JournalEntryListProps {
@@ -31,31 +30,6 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-
-  const handleToggleStatus = async () => {
-    if (!user || !firestore) return;
-    const entryRef = doc(
-      firestore,
-      'users',
-      user.uid,
-      'journalEntries',
-      entry.id
-    );
-    const newStatus = entry.status === 'Pending' ? 'Completed' : 'Pending';
-    try {
-      await updateDoc(entryRef, { status: newStatus });
-      toast({
-        title: 'Status Updated',
-        description: `Entry marked as ${newStatus.toLowerCase()}.`,
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to update status.',
-      });
-    }
-  };
   
   const handleDelete = async () => {
     if (!user || !firestore) return;
@@ -83,23 +57,8 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
 
   return (
     <div className="border p-4 rounded-lg bg-card">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <Badge
-            variant={entry.status === 'Completed' ? 'default' : 'secondary'}
-            className={
-              entry.status === 'Completed'
-                ? 'bg-green-100 text-green-800'
-                : ''
-            }
-          >
-            {entry.status}
-          </Badge>
-        </div>
+      <div className="flex justify-end items-start mb-4">
         <div className="flex gap-2">
-           <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleToggleStatus}>
-            <Check className="h-4 w-4" />
-          </Button>
           <Button variant="destructive" size="icon" className="h-8 w-8" onClick={handleDelete}>
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -111,10 +70,6 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {entry.topicsLearned}
           </p>
-        </div>
-         <div>
-          <h4 className="font-semibold text-sm mb-1">Scheduled Tasks</h4>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{entry.scheduledTasks}</p>
         </div>
         <div>
           <h4 className="font-semibold text-sm mb-1">Reflection</h4>

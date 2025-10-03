@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import JournalEntryForm from '@/components/journal/journal-entry-form';
-import JournalEntryList from '@/components/journal/journal-entry-list';
+import EventForm from '@/components/scheduler/event-form';
+import EventList from '@/components/scheduler/event-list';
 import {
   useUser,
   useFirestore,
@@ -20,26 +20,26 @@ import {
   useMemoFirebase,
 } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
-import { JournalEntry } from '@/lib/types';
+import { ScheduledEvent } from '@/lib/types';
 import { DayPicker, DayContentProps, DayProps } from 'react-day-picker';
 
-export default function DailyJournalPage() {
+export default function SchedulerPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const allEntriesQuery = useMemoFirebase(() => {
+  const allEventsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'users', user.uid, 'journalEntries'));
+    return query(collection(firestore, 'users', user.uid, 'scheduledEvents'));
   }, [user, firestore]);
 
-  const { data: allEntries } = useCollection<JournalEntry>(allEntriesQuery);
+  const { data: allEvents } = useCollection<ScheduledEvent>(allEventsQuery);
 
   const scheduledDays = useMemoFirebase(() => {
-    return allEntries
-      ? allEntries.map((entry) => parseISO(entry.entryDate))
+    return allEvents
+      ? allEvents.map((event) => parseISO(event.eventDate))
       : [];
-  }, [allEntries]);
+  }, [allEvents]);
 
   const formattedDate = format(selectedDate, 'yyyy-MM-dd');
   
@@ -59,17 +59,18 @@ export default function DailyJournalPage() {
   
   const Day = (props: DayProps & { dayNumber: number }) => {
      return <DayContent {...props} />;
-  };
+  }
+
 
   return (
     <div className="container mx-auto p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold font-headline mb-2">
-            Daily Journal
+            Scheduler
           </h1>
           <p className="text-muted-foreground">
-            Track your learnings and reflect on your progress.
+            Manage your events, tasks, and appointments.
           </p>
         </div>
         <Popover>
@@ -106,10 +107,10 @@ export default function DailyJournalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <JournalEntryList selectedDate={formattedDate} />
+          <EventList selectedDate={formattedDate} />
         </div>
         <div className="lg:col-span-1">
-          <JournalEntryForm selectedDate={formattedDate} key={formattedDate} />
+          <EventForm selectedDate={formattedDate} key={formattedDate} />
         </div>
       </div>
     </div>

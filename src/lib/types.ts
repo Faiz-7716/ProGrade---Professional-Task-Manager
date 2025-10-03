@@ -16,8 +16,16 @@ export interface JournalEntry {
     userId: string;
     entryDate: string; // Stored as 'YYYY-MM-DD'
     topicsLearned: string;
-    scheduledTasks: string;
     reflection: string;
+    createdAt: Timestamp;
+}
+
+export interface ScheduledEvent {
+    id: string;
+    userId: string;
+    eventDate: string; // Stored as 'YYYY-MM-DD'
+    title: string;
+    description: string;
     status: 'Pending' | 'Completed';
     createdAt: Timestamp;
 }

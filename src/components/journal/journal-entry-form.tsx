@@ -42,9 +42,6 @@ const formSchema = z.object({
   topicsLearned: z
     .string()
     .min(10, 'Please describe what you learned in at least 10 characters.'),
-  scheduledTasks: z
-    .string()
-    .min(5, 'Please enter at least one task or event.'),
   reflection: z
     .string()
     .min(10, 'Please describe your reflection in at least 10 characters.'),
@@ -67,7 +64,6 @@ export default function JournalEntryForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       topicsLearned: '',
-      scheduledTasks: '',
       reflection: '',
     },
   });
@@ -81,7 +77,7 @@ export default function JournalEntryForm({
     const fetchEntry = async () => {
       if (!journalEntriesCollection) return;
       
-      form.reset({ topicsLearned: '', scheduledTasks: '', reflection: '' });
+      form.reset({ topicsLearned: '', reflection: '' });
       setExistingEntry(null);
       setIsLoading(true);
 
@@ -97,7 +93,6 @@ export default function JournalEntryForm({
         setExistingEntry(entry);
         form.reset({
           topicsLearned: entry.topicsLearned,
-          scheduledTasks: entry.scheduledTasks,
           reflection: entry.reflection,
         });
       }
@@ -129,7 +124,6 @@ export default function JournalEntryForm({
           ...values,
           userId: user!.uid,
           entryDate: selectedDate,
-          status: 'Pending',
           createdAt: serverTimestamp(),
         });
         toast({
@@ -177,23 +171,6 @@ export default function JournalEntryForm({
                   <FormControl>
                     <Textarea
                       placeholder="e.g., Advanced React Hooks, Firestore data modeling..."
-                      rows={4}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="scheduledTasks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Scheduled Tasks / Events</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g., - College Event&#10;- Team meeting at 3 PM&#10;- Finish the 'Quiz Generator' feature"
                       rows={4}
                       {...field}
                     />
