@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -30,21 +29,22 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2, PlusCircle } from 'lucide-react';
-import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import {
+  useUser,
+  useFirestore,
+  useMemoFirebase,
+  useCollection,
+} from '@/firebase';
 import {
   collection,
   addDoc,
   serverTimestamp,
   query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
   orderBy,
 } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { JournalEntry, Course } from '@/lib/types';
+import { Course } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 
 const formSchema = z.object({
@@ -65,9 +65,6 @@ export default function JournalEntryForm({
   selectedDate,
 }: JournalEntryFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [existingEntry, setExistingEntry] = useState<JournalEntry | null>(
-    null
-  );
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -81,11 +78,16 @@ export default function JournalEntryForm({
     },
   });
 
-  const journalEntriesCollection = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, 'users', user.uid, 'journalEntries');
-  }, [user, firestore]);
-  
+  // Reset form when the selected date changes
+  useEffect(() => {
+    form.reset({
+      topicsLearned: '',
+      reflection: '',
+      course: '',
+    });
+  }, [selectedDate, form]);
+
+
   const coursesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return query(
@@ -96,96 +98,41 @@ export default function JournalEntryForm({
 
   const { data: courses } = useCollection<Course>(coursesQuery);
 
-  useEffect(() => {
-    const fetchEntry = async () => {
-      if (!journalEntriesCollection) return;
-
-      form.reset({ topicsLearned: '', reflection: '', course: '' });
-      setExistingEntry(null);
-      setIsLoading(true);
-
-      const q = query(
-        journalEntriesCollection,
-        where('entryDate', '==', selectedDate)
-      );
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        const entry = { id: doc.id, ...doc.data() } as JournalEntry;
-        setExistingEntry(entry);
-        form.reset({
-          topicsLearned: entry.topicsLearned,
-          reflection: entry.reflection,
-          course: entry.courseId ? `${entry.courseId}::${entry.courseName}` : '',
-        });
-      }
-      setIsLoading(false);
-    };
-
-    fetchEntry();
-  }, [selectedDate, journalEntriesCollection, form]);
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!journalEntriesCollection) return;
+    if (!user || !firestore) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'You must be logged in to add a journal entry.',
+        });
+        return
+    };
 
     setIsLoading(true);
 
-    const {course, ...entryData} = values;
+    const { course, ...entryData } = values;
     const [courseId, courseName] = course?.split('::') || [undefined, undefined];
-    
+
     const dataToSave = {
-        ...entryData,
-        courseId: courseId || null,
-        courseName: courseName || null,
-    }
+      ...entryData,
+      courseId: courseId || null,
+      courseName: courseName || null,
+      userId: user.uid,
+      entryDate: selectedDate,
+      createdAt: serverTimestamp(),
+    };
 
     try {
-      if (existingEntry) {
-        // Update existing entry
-        const entryRef = doc(
-          firestore,
-          'users',
-          user!.uid,
-          'journalEntries',
-          existingEntry.id
-        );
-        await updateDoc(entryRef, {
-          ...dataToSave,
-        });
-        toast({
-          title: 'Journal Updated!',
-          description: `Your entry for ${format(
-            new Date(selectedDate),
-            'PPP'
-          )} has been updated.`,
-        });
-      } else {
-        // Add new entry
-        await addDoc(journalEntriesCollection, {
-          ...dataToSave,
-          userId: user!.uid,
-          entryDate: selectedDate,
-          createdAt: serverTimestamp(),
-        });
-        toast({
-          title: 'Journal Entry Added!',
-          description: `Your entry for ${format(
-            new Date(selectedDate),
-            'PPP'
-          )} has been saved.`,
-        });
-      }
-      // Re-fetch entry after submission
-      const q = query(
-        journalEntriesCollection,
-        where('entryDate', '==', selectedDate)
-      );
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const doc = querySnapshot.docs[0];
-        setExistingEntry({ id: doc.id, ...doc.data() } as JournalEntry);
-      }
+      const journalEntriesCollection = collection(firestore, 'users', user.uid, 'journalEntries');
+      await addDoc(journalEntriesCollection, dataToSave);
+      toast({
+        title: 'Journal Entry Added!',
+        description: `Your entry for ${format(
+          new Date(selectedDate),
+          'PPP'
+        )} has been saved.`,
+      });
+      form.reset(); // Clear form after successful submission
     } catch (error) {
       console.error('Error saving journal entry:', error);
       toast({
@@ -201,9 +148,7 @@ export default function JournalEntryForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          {existingEntry ? 'Edit Entry for' : 'New Entry for'}
-        </CardTitle>
+        <CardTitle>New Entry for</CardTitle>
         <CardDescription>
           {format(new Date(selectedDate), 'PPP')}
         </CardDescription>
@@ -211,7 +156,7 @@ export default function JournalEntryForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-          <FormField
+            <FormField
               control={form.control}
               name="course"
               render={({ field }) => (
@@ -247,7 +192,7 @@ export default function JournalEntryForm({
               name="topicsLearned"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>What topics did you learn today?</FormLabel>
+                  <FormLabel>What topics did you learn?</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="e.g., Advanced React Hooks, Firestore data modeling..."
@@ -284,7 +229,7 @@ export default function JournalEntryForm({
               ) : (
                 <PlusCircle className="mr-2 h-4 w-4" />
               )}
-              {existingEntry ? 'Save Changes' : 'Add Entry'}
+              Add Entry
             </Button>
           </CardFooter>
         </form>
