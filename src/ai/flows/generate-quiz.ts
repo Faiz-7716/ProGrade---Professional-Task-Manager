@@ -11,7 +11,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const GenerateQuizInputSchema = z.object({
   learningTopic: z.string().describe('The topic the user has learned about.'),
@@ -40,10 +40,10 @@ const prompt = ai.definePrompt({
   name: 'generateQuizPrompt',
   input: { schema: GenerateQuizInputSchema },
   output: { schema: GenerateQuizOutputSchema },
-  prompt: `You are an expert quiz creator. Based on the following learning topic, generate a multiple-choice quiz with 4 questions to test the user's knowledge.
+  prompt: `You are an expert quiz creator. Based on the following learning topic, generate a multiple-choice quiz with 10 questions to test the user's knowledge.
 
 The quiz should consist of:
-- 3 standard questions.
+- 9 standard questions.
 - 1 "bonus" question that is slightly more difficult than the others.
 
 Each question must have exactly 4 options.
