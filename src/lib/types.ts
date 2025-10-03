@@ -19,3 +19,13 @@ export interface JournalEntry {
     reflection: string;
     createdAt: Timestamp;
 }
+
+export interface ScheduledEvent {
+    id: string;
+    userId: string;
+    title: string;
+    description?: string;
+    date: string; // Stored as 'YYYY-MM-DD'
+    status: 'Pending' | 'Completed';
+    createdAt: Timestamp;
+}
