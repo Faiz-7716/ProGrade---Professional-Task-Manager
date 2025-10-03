@@ -21,7 +21,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, BookOpenCheck, Target, Activity } from 'lucide-react';
 
 interface QuizHistory {
   id: string;
@@ -65,6 +65,24 @@ function PerformanceBadge({
   );
 }
 
+function StatCard({ title, value, icon: Icon, isLoading }: { title: string, value: string | number, icon: React.ElementType, isLoading: boolean }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-8 w-20" />
+        ) : (
+          <div className="text-2xl font-bold">{value}</div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function QuizHistoryPage() {
   const { user, isUserLoading: authLoading } = useUser();
   const firestore = useFirestore();
@@ -84,12 +102,52 @@ export default function QuizHistoryPage() {
   } = useCollection<QuizHistory>(quizHistoryQuery);
   const isLoading = authLoading || historyLoading;
 
+  const totalQuizzes = quizHistory?.length || 0;
+  
+  const { averageScore, needsImprovementCount } = useMemo(() => {
+    if (!quizHistory || quizHistory.length === 0) {
+      return { averageScore: 0, needsImprovementCount: 0 };
+    }
+
+    const totalCorrect = quizHistory.reduce((sum, q) => sum + q.correctAnswers, 0);
+    const totalPossible = quizHistory.reduce((sum, q) => sum + q.totalQuestions, 0);
+    const averageScore = totalPossible > 0 ? Math.round((totalCorrect / totalPossible) * 100) : 0;
+    
+    const needsImprovementCount = quizHistory.filter(q => {
+        const percentage = q.totalQuestions > 0 ? (q.correctAnswers / q.totalQuestions) * 100 : 0;
+        return percentage < 60;
+    }).length;
+
+    return { averageScore, needsImprovementCount };
+  }, [quizHistory]);
+
   return (
     <div className="container mx-auto p-4 md:p-8">
       <h1 className="text-3xl font-bold font-headline mb-2">Quiz History</h1>
       <p className="text-muted-foreground mb-8">
         Review your past quiz performance and track your progress.
       </p>
+
+      <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <StatCard
+          title="Total Quizzes"
+          value={totalQuizzes}
+          icon={BookOpenCheck}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Average Score"
+          value={`${averageScore}%`}
+          icon={Target}
+          isLoading={isLoading}
+        />
+        <StatCard
+          title="Needs Improvement"
+          value={needsImprovementCount}
+          icon={Activity}
+          isLoading={isLoading}
+        />
+      </div>
 
       <Card>
         <CardHeader>
