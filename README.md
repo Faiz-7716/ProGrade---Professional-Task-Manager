@@ -42,3 +42,4 @@ This is a [Firebase Studio](https://studio.firebase.google.com) project. To get 
 3.  Explore the various features by navigating through the dashboard.
 
 The main entry point for the application is `src/app/page.tsx`.
+# ProGrade---Professional-Task-Manager
