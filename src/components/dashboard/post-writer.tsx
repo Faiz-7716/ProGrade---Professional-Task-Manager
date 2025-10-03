@@ -38,6 +38,7 @@ import { generatePostAction, suggestHashtagsAction } from '@/app/actions';
 import { Loader2, WandSparkles, Tag } from 'lucide-react';
 import CopyButton from '../copy-button';
 import { Badge } from '../ui/badge';
+import { CodeBlock } from '../code-block';
 
 const postSchema = z.object({
   topic: z.string().min(10, 'Please describe your topic in more detail.'),
@@ -131,12 +132,9 @@ function PostWriterForm() {
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
         {result && (
-          <div className="rounded-md border bg-muted p-4">
-            <div className="flex justify-between items-start">
-              <p className="text-sm whitespace-pre-wrap">{result}</p>
-              <CopyButton textToCopy={result} className="-mr-2" />
-            </div>
-          </div>
+          <CodeBlock textToCopy={result}>
+            {result}
+          </CodeBlock>
         )}
       </form>
     </Form>

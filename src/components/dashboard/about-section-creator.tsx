@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { generateAboutSectionAction } from '@/app/actions';
 import { Loader2, WandSparkles } from 'lucide-react';
-import CopyButton from '../copy-button';
+import { CodeBlock } from '../code-block';
 
 const formSchema = z.object({
   userInput: z
@@ -95,12 +95,9 @@ export default function AboutSectionCreator() {
             </Button>
             {error && <p className="text-sm text-destructive">{error}</p>}
             {result && (
-              <div className="rounded-md border bg-muted p-4">
-                <div className="flex justify-between items-start">
-                  <p className="text-sm whitespace-pre-wrap">{result}</p>
-                  <CopyButton textToCopy={result} />
-                </div>
-              </div>
+              <CodeBlock textToCopy={result}>
+                {result}
+              </CodeBlock>
             )}
           </CardFooter>
         </form>
