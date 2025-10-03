@@ -1,106 +1,127 @@
 /**
- * @fileoverview Firestore Security Rules for Prograde Application
+ * @fileoverview Firestore Security Rules for the Prograde application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Each user can only access data
- * associated with their own user ID.
+ * This ruleset enforces a strict user-ownership model for all data. Each user
+ * can only access data explicitly associated with their user ID.
  *
  * Data Structure:
- * All data is nested under /users/{userId}, creating a clear ownership hierarchy.
+ * All data is nested under /users/{userId}, ensuring that all collections are
+ * user-specific. This structure simplifies the security rules by leveraging
+ * path-based authorization.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
- * - Data shape is not strictly validated to allow for prototyping.
- * - All write operations require a verified user identity.
+ * - Users can only access their own data.
+ * - No user listing is allowed.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces access control for user-specific quiz history entries.
+     * @description Checks if the request is authenticated.
+     * @return {bool} True if the request is authenticated, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the authenticated user's ID matches the provided userId.
+     * @param {string} userId The user ID to compare against.
+     * @return {bool} True if the user IDs match, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the authenticated user is the owner of an existing document.
+     * @param {string} userId The user ID to compare against.
+     * @return {bool} True if the user IDs match and the document exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Defines security rules for the quiz_history collection under a specific user.
      * @path /users/{userId}/quiz_history/{quizHistoryId}
-     * @allow (create) User 'user123' can create a new quiz history entry under their own user ID.
-     * @allow (get, list) User 'user123' can read and list their own quiz history entries.
-     * @allow (update, delete) User 'user123' can update or delete their own quiz history entries.
-     * @deny (create) User 'user456' cannot create a quiz history entry under user 'user123''s ID.
-     * @deny (get, list) User 'user456' cannot read or list quiz history entries under user 'user123''s ID.
-     * @deny (update, delete) User 'user456' cannot update or delete quiz history entries under user 'user123''s ID.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User A creates a new quiz history entry under /users/A/quiz_history/entry1.
+     * @allow (get, list) - User A reads quiz history entries under /users/A/quiz_history.
+     * @deny (create) - User B attempts to create a quiz history entry under /users/A/quiz_history/entry1.
+     * @deny (update, delete) - User B attempts to modify or delete a quiz history entry under /users/A/quiz_history/entry1.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/quiz_history/{quizHistoryId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && isOwner(userId) && resource != null;
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      // Write rules
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for user-specific courses.
+     * @description Defines security rules for the courses collection under a specific user.
      * @path /users/{userId}/courses/{courseId}
-     * @allow (create) User 'user123' can create a new course under their own user ID.
-     * @allow (get, list) User 'user123' can read and list their own courses.
-     * @allow (update, delete) User 'user123' can update or delete their own courses.
-     * @deny (create) User 'user456' cannot create a course under user 'user123''s ID.
-     * @deny (get, list) User 'user456' cannot read or list courses under user 'user123''s ID.
-     * @deny (update, delete) User 'user456' cannot update or delete courses under user 'user123''s ID.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User A creates a new course under /users/A/courses/course1.
+     * @allow (get, list) - User A reads courses under /users/A/courses.
+     * @deny (create) - User B attempts to create a course under /users/A/courses/course1.
+     * @deny (update, delete) - User B attempts to modify or delete a course under /users/A/courses/course1.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/courses/{courseId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && isOwner(userId) && resource != null;
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      // Write rules
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for user-specific journal entries.
+     * @description Defines security rules for the journalEntries collection under a specific user.
      * @path /users/{userId}/journalEntries/{entryId}
-     * @allow (create) User 'user123' can create a new journal entry under their own user ID.
-     * @allow (get, list) User 'user123' can read and list their own journal entries.
-     * @allow (update, delete) User 'user123' can update or delete their own journal entries.
-     * @deny (create) User 'user456' cannot create a journal entry under user 'user123''s ID.
-     * @deny (get, list) User 'user456' cannot read or list journal entries under user 'user123''s ID.
-     * @deny (update, delete) User 'user456' cannot update or delete journal entries under user 'user123''s ID.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User A creates a new journal entry under /users/A/journalEntries/entry1.
+     * @allow (get, list) - User A reads journal entries under /users/A/journalEntries.
+     * @deny (create) - User B attempts to create a journal entry under /users/A/journalEntries/entry1.
+     * @deny (update, delete) - User B attempts to modify or delete a journal entry under /users/A/journalEntries/entry1.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/journalEntries/{entryId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && isOwner(userId) && resource != null;
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      // Write rules
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for user-specific scheduled events.
+     * @description Defines security rules for the scheduledEvents collection under a specific user.
      * @path /users/{userId}/scheduledEvents/{eventId}
-     * @allow (create) User 'user123' can create a new scheduled event under their own user ID.
-     * @allow (get, list) User 'user123' can read and list their own scheduled events.
-     * @allow (update, delete) User 'user123' can update or delete their own scheduled events.
-     * @deny (create) User 'user456' cannot create a scheduled event under user 'user123''s ID.
-     * @deny (get, list) User 'user456' cannot read or list scheduled events under user 'user123''s ID.
-     * @deny (update, delete) User 'user456' cannot update or delete scheduled events under user 'user123''s ID.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User A creates a new scheduled event under /users/A/scheduledEvents/event1.
+     * @allow (get, list) - User A reads scheduled events under /users/A/scheduledEvents.
+     * @deny (create) - User B attempts to create a scheduled event under /users/A/scheduledEvents/event1.
+     * @deny (update, delete) - User B attempts to modify or delete a scheduled event under /users/A/scheduledEvents/event1.
+     * @principle Enforces document ownership for writes and restricts access to a user's own data tree.
      */
     match /users/{userId}/scheduledEvents/{eventId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
-      allow update: if isSignedIn() && isOwner(userId) && resource != null;
-      allow delete: if isSignedIn() && isOwner(userId) && resource != null;
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      // Write rules
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
-  }
-
-  // Helper function to determine if the user is signed in
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  // Helper function to determine if the user is the owner of the resource
-  function isOwner(userId) {
-    return request.auth.uid == userId;
   }
 }
