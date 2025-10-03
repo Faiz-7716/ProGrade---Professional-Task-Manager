@@ -14,7 +14,6 @@ import {
   BookMarked,
   BrainCircuit,
   History,
-  BookText,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,6 @@ const navLinks = [
   { href: '/content-studio', label: 'Content Studio', icon: PenSquare },
   { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
-  { href: '/learning-journal', label: 'Learning Journal', icon: BookText },
   { href: '/quiz-generator', label: 'Quiz Generator', icon: BrainCircuit },
   { href: '/quiz-history', label: 'Quiz History', icon: History },
 ];
