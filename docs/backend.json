@@ -22,13 +22,17 @@
           "type": "string",
           "description": "The user's reflection or thoughts for the day."
         },
-        "courseId": {
-            "type": "string",
-            "description": "The optional ID of the course this entry is related to."
-        },
-        "courseName": {
-            "type": "string",
-            "description": "The optional name of the course this entry is related to."
+        "linkedCourses": {
+            "type": "array",
+            "description": "An array of courses this entry is related to.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" }
+                },
+                "required": ["id", "name"]
+            }
         },
         "createdAt": {
           "type": "string",

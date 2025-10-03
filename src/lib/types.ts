@@ -18,6 +18,5 @@ export interface JournalEntry {
     topicsLearned: string;
     reflection: string;
     createdAt: Timestamp;
-    courseId?: string;
-    courseName?: string;
+    linkedCourses?: { id: string; name: string; }[];
 }

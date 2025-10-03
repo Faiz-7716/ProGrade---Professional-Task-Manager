@@ -20,12 +20,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2, PlusCircle } from 'lucide-react';
@@ -54,7 +56,7 @@ const formSchema = z.object({
   reflection: z
     .string()
     .min(10, 'Please describe your reflection in at least 10 characters.'),
-  course: z.string().optional(),
+  linkedCourses: z.array(z.string()).optional(),
 });
 
 interface JournalEntryFormProps {
@@ -74,7 +76,7 @@ export default function JournalEntryForm({
     defaultValues: {
       topicsLearned: '',
       reflection: '',
-      course: '',
+      linkedCourses: [],
     },
   });
 
@@ -83,7 +85,7 @@ export default function JournalEntryForm({
     form.reset({
       topicsLearned: '',
       reflection: '',
-      course: '',
+      linkedCourses: [],
     });
   }, [selectedDate, form]);
 
@@ -97,6 +99,7 @@ export default function JournalEntryForm({
   }, [user, firestore]);
 
   const { data: courses } = useCollection<Course>(coursesQuery);
+  const selectedCourses = form.watch('linkedCourses') || [];
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !firestore) {
@@ -110,13 +113,15 @@ export default function JournalEntryForm({
 
     setIsLoading(true);
 
-    const { course, ...entryData } = values;
-    const [courseId, courseName] = course?.split('::') || [undefined, undefined];
+    const linkedCourses = values.linkedCourses?.map(courseString => {
+      const [id, name] = courseString.split('::');
+      return { id, name };
+    }) || [];
 
     const dataToSave = {
-      ...entryData,
-      courseId: courseId || null,
-      courseName: courseName || null,
+      topicsLearned: values.topicsLearned,
+      reflection: values.reflection,
+      linkedCourses: linkedCourses,
       userId: user.uid,
       entryDate: selectedDate,
       createdAt: serverTimestamp(),
@@ -156,33 +161,43 @@ export default function JournalEntryForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-            <FormField
+             <FormField
               control={form.control}
-              name="course"
+              name="linkedCourses"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link to a Course (Optional)</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a course" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <ScrollArea className="h-72">
-                        {courses?.map((c) => (
-                          <SelectItem key={c.id} value={`${c.id}::${c.name}`}>
-                            {c.name}
-                          </SelectItem>
+                  <FormLabel>Link to Courses (Optional)</FormLabel>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <span className="truncate">
+                            {selectedCourses.length > 0
+                              ? selectedCourses.map(c => c.split('::')[1]).join(', ')
+                              : "Select courses"}
+                          </span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        <DropdownMenuLabel>Your Courses</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {courses?.map(course => (
+                          <DropdownMenuCheckboxItem
+                            key={course.id}
+                            checked={field.value?.includes(`${course.id}::${course.name}`)}
+                            onCheckedChange={(checked) => {
+                              const courseString = `${course.id}::${course.name}`;
+                              if (checked) {
+                                field.onChange([...(field.value || []), courseString]);
+                              } else {
+                                field.onChange(field.value?.filter(val => val !== courseString));
+                              }
+                            }}
+                          >
+                            {course.name}
+                          </DropdownMenuCheckboxItem>
                         ))}
-                      </ScrollArea>
-                    </SelectContent>
-                  </Select>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   <FormMessage />
                 </FormItem>
               )}

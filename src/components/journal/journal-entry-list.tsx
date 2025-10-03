@@ -60,13 +60,13 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
   return (
     <div className="border p-4 rounded-lg bg-card">
       <div className="flex justify-between items-start mb-4">
-        <div>
-          {entry.courseName && (
-            <Badge variant="secondary" className="mb-2">
+        <div className="flex flex-wrap gap-2">
+          {entry.linkedCourses && entry.linkedCourses.map(course => (
+            <Badge key={course.id} variant="secondary" className="mb-2">
               <BookMarked className="h-3 w-3 mr-1.5" />
-              {entry.courseName}
+              {course.name}
             </Badge>
-          )}
+          ))}
         </div>
         <div className="flex gap-2">
            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditDialogOpen(true)}>

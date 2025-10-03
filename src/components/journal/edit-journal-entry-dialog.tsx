@@ -19,7 +19,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, collection, query, orderBy } from 'firebase/firestore';
@@ -27,13 +26,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { JournalEntry, Course } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { ScrollArea } from '../ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const formSchema = z.object({
   topicsLearned: z.string().min(10, 'Please describe what you learned in at least 10 characters.'),
   reflection: z.string().min(10, 'Please describe your reflection in at least 10 characters.'),
-  course: z.string().optional(),
+  linkedCourses: z.array(z.string()).optional(),
 });
 
 interface EditJournalEntryDialogProps {
@@ -57,7 +62,7 @@ export default function EditJournalEntryDialog({
     defaultValues: {
       topicsLearned: entry.topicsLearned,
       reflection: entry.reflection,
-      course: entry.courseId ? `${entry.courseId}::${entry.courseName}` : '',
+      linkedCourses: entry.linkedCourses ? entry.linkedCourses.map(c => `${c.id}::${c.name}`) : [],
     },
   });
   
@@ -70,13 +75,14 @@ export default function EditJournalEntryDialog({
   }, [user, firestore]);
 
   const { data: courses } = useCollection<Course>(coursesQuery);
+  const selectedCourses = form.watch('linkedCourses') || [];
 
   useEffect(() => {
     if (isOpen) {
       form.reset({
         topicsLearned: entry.topicsLearned,
         reflection: entry.reflection,
-        course: entry.courseId ? `${entry.courseId}::${entry.courseName}` : '',
+        linkedCourses: entry.linkedCourses ? entry.linkedCourses.map(c => `${c.id}::${c.name}`) : [],
       });
     }
   }, [isOpen, entry, form]);
@@ -88,13 +94,15 @@ export default function EditJournalEntryDialog({
     try {
       const entryRef = doc(firestore, 'users', user.uid, 'journalEntries', entry.id);
       
-      const {course, ...entryData} = values;
-      const [courseId, courseName] = course?.split('::') || [undefined, undefined];
-    
+      const linkedCourses = values.linkedCourses?.map(courseString => {
+        const [id, name] = courseString.split('::');
+        return { id, name };
+      }) || [];
+
       const dataToSave = {
-          ...entryData,
-          courseId: courseId === 'none' ? null : courseId || null,
-          courseName: courseId === 'none' ? null : courseName || null,
+          topicsLearned: values.topicsLearned,
+          reflection: values.reflection,
+          linkedCourses: linkedCourses,
       }
 
       await updateDoc(entryRef, dataToSave);
@@ -129,30 +137,41 @@ export default function EditJournalEntryDialog({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
              <FormField
               control={form.control}
-              name="course"
+              name="linkedCourses"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link to a Course (Optional)</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a course" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <ScrollArea className="h-72">
-                        {courses?.map((c) => (
-                          <SelectItem key={c.id} value={`${c.id}::${c.name}`}>
-                            {c.name}
-                          </SelectItem>
+                  <FormLabel>Link to Courses (Optional)</FormLabel>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <span className="truncate">
+                            {selectedCourses.length > 0
+                              ? selectedCourses.map(c => c.split('::')[1]).join(', ')
+                              : "Select courses"}
+                          </span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full">
+                        <DropdownMenuLabel>Your Courses</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {courses?.map(course => (
+                          <DropdownMenuCheckboxItem
+                            key={course.id}
+                            checked={field.value?.includes(`${course.id}::${course.name}`)}
+                            onCheckedChange={(checked) => {
+                              const courseString = `${course.id}::${course.name}`;
+                              if (checked) {
+                                field.onChange([...(field.value || []), courseString]);
+                              } else {
+                                field.onChange(field.value?.filter(val => val !== courseString));
+                              }
+                            }}
+                          >
+                            {course.name}
+                          </DropdownMenuCheckboxItem>
                         ))}
-                      </ScrollArea>
-                    </SelectContent>
-                  </Select>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   <FormMessage />
                 </FormItem>
               )}
