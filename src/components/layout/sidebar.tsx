@@ -1,6 +1,7 @@
+
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Bell,
   Home,
@@ -37,6 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 
 const navLinks = [
@@ -78,9 +80,16 @@ export default function Sidebar() {
   const { user } = useUser();
   const auth = useAuth();
   const userAvatar = getPlaceholderImage('user-avatar');
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogout = async () => {
     await signOut(auth);
+    toast({
+      title: 'Logged Out',
+      description: 'You have been successfully logged out.',
+    });
+    router.push('/login');
   };
 
   if (!user) return null;
