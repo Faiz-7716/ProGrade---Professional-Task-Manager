@@ -1,6 +1,40 @@
 
 {
   "entities": {
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "type": "object",
+      "description": "Represents a daily journal entry for a user to track learning and tasks.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this journal entry."
+        },
+        "entryDate": {
+          "type": "string",
+          "description": "The date for the journal entry in YYYY-MM-DD format."
+        },
+        "topicsLearned": {
+          "type": "string",
+          "description": "A summary of topics the user learned on this day."
+        },
+        "nextSteps": {
+          "type": "string",
+          "description": "The user's plan for what to do next."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the tasks for the day.",
+          "enum": ["Pending", "Completed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The timestamp when the entry was created.",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "entryDate", "topicsLearned", "nextSteps", "status", "createdAt"]
+    },
     "Course": {
       "title": "Course",
       "type": "object",
@@ -182,8 +216,28 @@
             }
           ]
         }
+      },
+       {
+        "path": "/users/{userId}/journalEntries/{entryId}",
+        "definition": {
+          "entityName": "JournalEntry",
+          "schema": {
+            "$ref": "#/backend/entities/JournalEntry"
+          },
+          "description": "Stores daily journal entries for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "entryId",
+              "description": "The unique identifier of the journal entry."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to store quiz history and points, as well as correct and wrong answer ratios, for users of the Prograde application. The core principle is to ensure authorization independence, allowing for secure and scalable data access. The structure implements path-based ownership for user-specific data and avoids hierarchical authorization dependencies.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user. The `userId` parameter ensures that only the user can access their own quiz history. There is no need to store the `userId` again in the quiz history document because it is already present in the parent collection. Since this path implements path-based ownership, authorization independence is already achieved. This structure also supports simple `list` operations, satisfying the QAPs.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user, ensuring data is partitioned by user for security and query efficiency."
+    "reasoning": "The Firestore structure is designed to store quiz history and points, as well as correct and wrong answer ratios, for users of the Prograde application. The core principle is to ensure authorization independence, allowing for secure and scalable data access. The structure implements path-based ownership for user-specific data and avoids hierarchical authorization dependencies.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user. The `userId` parameter ensures that only the user can access their own quiz history. There is no need to store the `userId` again in the quiz history document because it is already present in the parent collection. Since this path implements path-based ownership, authorization independence is already achieved. This structure also supports simple `list` operations, satisfying the QAPs.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user, ensuring data is partitioned by user for security and query efficiency.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user, partitioned by user for security."
   }
 }

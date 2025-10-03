@@ -10,3 +10,13 @@ export interface Course {
     status: 'Not Started' | 'Ongoing' | 'Completed';
     addedAt: Timestamp;
 }
+
+export interface JournalEntry {
+    id: string;
+    userId: string;
+    entryDate: string; // Stored as 'YYYY-MM-DD'
+    topicsLearned: string;
+    nextSteps: string;
+    status: 'Pending' | 'Completed';
+    createdAt: Timestamp;
+}

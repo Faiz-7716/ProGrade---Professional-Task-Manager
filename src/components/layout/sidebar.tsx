@@ -14,6 +14,7 @@ import {
   BookMarked,
   BrainCircuit,
   History,
+  BookText,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/daily-journal', label: 'Daily Journal', icon: BookText },
   { href: '/profile-optimizer', label: 'Profile Optimizer', icon: Lightbulb },
   { href: '/content-studio', label: 'Content Studio', icon: PenSquare },
   { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
