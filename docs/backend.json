@@ -1,40 +1,6 @@
 
 {
   "entities": {
-    "ScheduledEvent": {
-      "title": "Scheduled Event",
-      "type": "object",
-      "description": "Represents an event or a to-do item scheduled by a user.",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "description": "The ID of the user who owns this event."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the event."
-        },
-        "description": {
-          "type": "string",
-          "description": "An optional description for the event."
-        },
-        "date": {
-          "type": "string",
-          "description": "The date of the event in YYYY-MM-DD format."
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the event.",
-          "enum": ["Pending", "Completed"]
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "The timestamp when the event was created.",
-          "format": "date-time"
-        }
-      },
-      "required": ["userId", "title", "date", "status", "createdAt"]
-    },
     "JournalEntry": {
       "title": "Journal Entry",
       "type": "object",
@@ -206,16 +172,6 @@ a          ]
   },
   "firestore": {
     "structure": [
-      {
-        "path": "/users/{userId}/scheduledEvents/{eventId}",
-        "definition": {
-          "entityName": "ScheduledEvent",
-          "schema": {
-            "$ref": "#/backend/entities/ScheduledEvent"
-          },
-          "description": "Stores events for each user. Path-based ownership ensures that only the user can access their own events."
-        }
-      },
       {
         "path": "/users/{userId}/quiz_history/{quizHistoryId}",
         "definition": {
