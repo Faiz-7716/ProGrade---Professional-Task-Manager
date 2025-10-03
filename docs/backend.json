@@ -14,25 +14,28 @@
           "type": "string",
           "description": "The date for the journal entry in YYYY-MM-DD format."
         },
-        "topicsLearned": {
-          "type": "string",
-          "description": "A summary of topics the user learned on this day."
+        "courseProgress": {
+          "type": "array",
+          "description": "An array of objects detailing progress made in specific courses.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "courseId": {
+                "type": "string"
+              },
+              "courseName": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              }
+            },
+            "required": ["courseId", "courseName", "notes"]
+          }
         },
         "reflection": {
           "type": "string",
-          "description": "The user's reflection or thoughts for the day."
-        },
-        "linkedCourses": {
-            "type": "array",
-            "description": "An array of courses this entry is related to.",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "id": { "type": "string" },
-                    "name": { "type": "string" }
-                },
-                "required": ["id", "name"]
-            }
+          "description": "The user's overall reflection or thoughts for the day."
         },
         "createdAt": {
           "type": "string",
@@ -40,7 +43,7 @@
           "format": "date-time"
         }
       },
-      "required": ["userId", "entryDate", "topicsLearned", "reflection", "createdAt"]
+      "required": ["userId", "entryDate", "courseProgress", "reflection", "createdAt"]
     },
     "Course": {
       "title": "Course",
@@ -78,7 +81,7 @@
             "Not Started",
             "Ongoing",
             "Completed"
-a          ]
+          ]
         },
         "addedAt": {
           "type": "string",

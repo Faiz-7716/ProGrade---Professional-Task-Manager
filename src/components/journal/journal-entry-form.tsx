@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -47,16 +47,18 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Course } from '@/lib/types';
-import { ScrollArea } from '../ui/scroll-area';
+
+const courseProgressSchema = z.object({
+  courseId: z.string(),
+  courseName: z.string(),
+  notes: z.string().min(1, 'Notes cannot be empty.'),
+});
 
 const formSchema = z.object({
-  topicsLearned: z
-    .string()
-    .min(10, 'Please describe what you learned in at least 10 characters.'),
   reflection: z
     .string()
     .min(10, 'Please describe your reflection in at least 10 characters.'),
-  linkedCourses: z.array(z.string()).optional(),
+  courseProgress: z.array(courseProgressSchema).min(1, "Please add notes for at least one course."),
 });
 
 interface JournalEntryFormProps {
@@ -74,18 +76,22 @@ export default function JournalEntryForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topicsLearned: '',
       reflection: '',
-      linkedCourses: [],
+      courseProgress: [],
     },
+  });
+
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: 'courseProgress',
+    keyName: 'key',
   });
 
   // Reset form when the selected date changes
   useEffect(() => {
     form.reset({
-      topicsLearned: '',
       reflection: '',
-      linkedCourses: [],
+      courseProgress: [],
     });
   }, [selectedDate, form]);
 
@@ -99,7 +105,20 @@ export default function JournalEntryForm({
   }, [user, firestore]);
 
   const { data: courses } = useCollection<Course>(coursesQuery);
-  const selectedCourses = form.watch('linkedCourses') || [];
+  
+  const handleCourseSelection = (courseId: string, courseName: string, isSelected: boolean) => {
+    const fieldIndex = fields.findIndex(field => field.courseId === courseId);
+    
+    if (isSelected) {
+      if (fieldIndex === -1) {
+        append({ courseId, courseName, notes: '' });
+      }
+    } else {
+      if (fieldIndex !== -1) {
+        remove(fieldIndex);
+      }
+    }
+  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !firestore) {
@@ -113,15 +132,8 @@ export default function JournalEntryForm({
 
     setIsLoading(true);
 
-    const linkedCourses = values.linkedCourses?.map(courseString => {
-      const [id, name] = courseString.split('::');
-      return { id, name };
-    }) || [];
-
     const dataToSave = {
-      topicsLearned: values.topicsLearned,
-      reflection: values.reflection,
-      linkedCourses: linkedCourses,
+      ...values,
       userId: user.uid,
       entryDate: selectedDate,
       createdAt: serverTimestamp(),
@@ -149,6 +161,8 @@ export default function JournalEntryForm({
       setIsLoading(false);
     }
   }
+  
+  const selectedCourseNames = fields.map(f => f.courseName).join(', ');
 
   return (
     <Card>
@@ -161,70 +175,62 @@ export default function JournalEntryForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-             <FormField
-              control={form.control}
-              name="linkedCourses"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link to Courses (Optional)</FormLabel>
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
-                          <span className="truncate">
-                            {selectedCourses.length > 0
-                              ? selectedCourses.map(c => c.split('::')[1]).join(', ')
-                              : "Select courses"}
-                          </span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-full">
-                        <DropdownMenuLabel>Your Courses</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {courses?.map(course => (
-                          <DropdownMenuCheckboxItem
-                            key={course.id}
-                            checked={field.value?.includes(`${course.id}::${course.name}`)}
-                            onCheckedChange={(checked) => {
-                              const courseString = `${course.id}::${course.name}`;
-                              if (checked) {
-                                field.onChange([...(field.value || []), courseString]);
-                              } else {
-                                field.onChange(field.value?.filter(val => val !== courseString));
-                              }
-                            }}
-                          >
-                            {course.name}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="topicsLearned"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>What topics did you learn?</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g., Advanced React Hooks, Firestore data modeling..."
-                      rows={4}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <FormItem>
+                <FormLabel>Select Courses</FormLabel>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                        <span className="truncate">
+                        {fields.length > 0 ? selectedCourseNames : "Select courses to log progress"}
+                        </span>
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-full">
+                    <DropdownMenuLabel>Your Courses</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {courses?.map(course => (
+                        <DropdownMenuCheckboxItem
+                        key={course.id}
+                        checked={fields.some(f => f.courseId === course.id)}
+                        onCheckedChange={(checked) => {
+                            handleCourseSelection(course.id, course.name, checked);
+                        }}
+                        >
+                        {course.name}
+                        </DropdownMenuCheckboxItem>
+                    ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <FormMessage>{form.formState.errors.courseProgress?.root?.message}</FormMessage>
+            </FormItem>
+
+            {fields.map((field, index) => (
+               <FormField
+                key={field.key}
+                control={form.control}
+                name={`courseProgress.${index}.notes`}
+                render={({ field: fieldProps }) => (
+                  <FormItem>
+                    <FormLabel>Progress for: <span className="font-semibold">{field.courseName}</span></FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={`e.g., Finished module 3 on state management...`}
+                        rows={3}
+                        {...fieldProps}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+
             <FormField
               control={form.control}
               name="reflection"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Daily Reflection</FormLabel>
+                  <FormLabel>Overall Daily Reflection</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="e.g., Today was productive. I feel more confident with..."

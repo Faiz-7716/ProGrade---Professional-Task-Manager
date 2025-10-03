@@ -59,15 +59,7 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
 
   return (
     <div className="border p-4 rounded-lg bg-card">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex flex-wrap gap-2">
-          {entry.linkedCourses && entry.linkedCourses.map(course => (
-            <Badge key={course.id} variant="secondary" className="mb-2">
-              <BookMarked className="h-3 w-3 mr-1.5" />
-              {course.name}
-            </Badge>
-          ))}
-        </div>
+      <div className="flex justify-end items-start mb-4">
         <div className="flex gap-2">
            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditDialogOpen(true)}>
             <Edit className="h-4 w-4" />
@@ -83,14 +75,21 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
         </div>
       </div>
       <div className="space-y-4">
+        {entry.courseProgress.map((progress) => (
+            <div key={progress.courseId}>
+                <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="secondary">
+                        <BookMarked className="h-3 w-3 mr-1.5" />
+                        {progress.courseName}
+                    </Badge>
+                </div>
+                 <p className="text-sm text-muted-foreground whitespace-pre-wrap pl-2 border-l-2 ml-2">
+                    {progress.notes}
+                </p>
+            </div>
+        ))}
         <div>
-          <h4 className="font-semibold text-sm mb-1">Topics Learned</h4>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-            {entry.topicsLearned}
-          </p>
-        </div>
-        <div>
-          <h4 className="font-semibold text-sm mb-1">Reflection</h4>
+          <h4 className="font-semibold text-sm mb-1 mt-4">Overall Reflection</h4>
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
             {entry.reflection}
           </p>

@@ -15,8 +15,11 @@ export interface JournalEntry {
     id: string;
     userId: string;
     entryDate: string; // Stored as 'YYYY-MM-DD'
-    topicsLearned: string;
     reflection: string;
     createdAt: Timestamp;
-    linkedCourses?: { id: string; name: string; }[];
+    courseProgress: {
+        courseId: string;
+        courseName: string;
+        notes: string;
+    }[];
 }
