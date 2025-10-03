@@ -10,6 +10,10 @@ import {
   GenerateLinkedInPostInput,
 } from '@/ai/flows/generate-linkedin-post';
 import {
+    generateQuiz,
+    GenerateQuizInput,
+  } from '@/ai/flows/generate-quiz';
+import {
   parseResume,
   ParseResumeInput,
 } from '@/ai/flows/parse-resume';
@@ -90,3 +94,12 @@ export async function parseResumeAction(input: ParseResumeInput) {
     return handleActionError(e);
   }
 }
+
+export async function generateQuizAction(input: GenerateQuizInput) {
+    try {
+      const result = await generateQuiz(input);
+      return { quiz: result };
+    } catch (e) {
+      return handleActionError(e);
+    }
+  }

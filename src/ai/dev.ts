@@ -7,3 +7,4 @@ import '@/ai/flows/provide-daily-growth-suggestions.ts';
 import '@/ai/flows/suggest-headline.ts';
 import '@/ai/flows/suggest-hashtags.ts';
 import '@/ai/flows/parse-resume.ts';
+import '@/ai/flows/generate-quiz.ts';

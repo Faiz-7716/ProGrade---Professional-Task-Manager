@@ -11,6 +11,7 @@ import {
   LogOut,
   Settings,
   BookMarked,
+  BrainCircuit,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ const navLinks = [
   { href: '/content-studio', label: 'Content Studio', icon: PenSquare },
   { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
+  { href: '/quiz-generator', label: 'Quiz Generator', icon: BrainCircuit },
 ];
 
 function NavLink({
