@@ -22,6 +22,14 @@
           "type": "string",
           "description": "The user's reflection or thoughts for the day."
         },
+        "courseId": {
+            "type": "string",
+            "description": "The optional ID of the course this entry is related to."
+        },
+        "courseName": {
+            "type": "string",
+            "description": "The optional name of the course this entry is related to."
+        },
         "createdAt": {
           "type": "string",
           "description": "The timestamp when the entry was created.",

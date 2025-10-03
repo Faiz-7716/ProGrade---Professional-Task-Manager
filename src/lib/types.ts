@@ -18,4 +18,6 @@ export interface JournalEntry {
     topicsLearned: string;
     reflection: string;
     createdAt: Timestamp;
+    courseId?: string;
+    courseName?: string;
 }

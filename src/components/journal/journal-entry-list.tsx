@@ -18,9 +18,10 @@ import { collection, query, where } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { JournalEntry } from '@/lib/types';
 import { Button } from '../ui/button';
-import { Trash2 } from 'lucide-react';
+import { BookMarked, Trash2 } from 'lucide-react';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '../ui/badge';
 
 interface JournalEntryListProps {
   selectedDate: string; // YYYY-MM-DD
@@ -57,7 +58,15 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
 
   return (
     <div className="border p-4 rounded-lg bg-card">
-      <div className="flex justify-end items-start mb-4">
+       <div className="flex justify-between items-start mb-4">
+        <div>
+          {entry.courseName && (
+            <Badge variant="secondary" className="mb-2">
+              <BookMarked className="h-3 w-3 mr-1.5" />
+              {entry.courseName}
+            </Badge>
+          )}
+        </div>
         <div className="flex gap-2">
           <Button variant="destructive" size="icon" className="h-8 w-8" onClick={handleDelete}>
             <Trash2 className="h-4 w-4" />
