@@ -1,96 +1,121 @@
 /**
- * @file Firebase Security Rules for Prograde application.
+ * @fileoverview Firestore Security Rules for Prograde application.
  *
- * @core_philosophy This ruleset enforces a strict user-ownership model,
- * ensuring that users can only access their own data (courses and quiz history).
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for all data. Each user can only access their own data.
  *
- * @data_structure Data is organized under user-specific paths:
- *   - /users/{userId}/quiz_history/{quizHistoryId}
- *   - /users/{userId}/courses/{courseId}
+ * Data Structure:
+ * All data is nested under /users/{userId}, ensuring data isolation.
+ *  - /users/{userId}/quiz_history/{quizHistoryId}: Stores quiz history.
+ *  - /users/{userId}/courses/{courseId}: Stores course data.
+ *  - /users/{userId}/journalEntries/{entryId}: Stores journal entries.
  *
- * @key_security_decisions
- *   - Listing all users is disallowed.
- *   - Ambiguous or missing authorization information defaults to strict denial.
+ * Key Security Decisions:
+ * - User listing is implicitly disallowed.
+ * - All write operations require a verified user identity (request.auth != null).
+ * - Data structure enforces path-based ownership, simplifying rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secure quiz history entries for each user.
+     * @description Secures quiz history entries, allowing only the owning user to read and write.
      * @path /users/{userId}/quiz_history/{quizHistoryId}
-     * @allow (create) - User 'user123' can create a quiz history entry under their own user ID.
-     *   Request: { auth: { uid: 'user123' }, resource: { data: { userId: 'user123', quizName: 'Math Quiz', points: 90, correctAnswers: 27, wrongAnswers: 3, completionDate: '2024-01-01T12:00:00Z' } } }
-     * @allow (get, list) - User 'user123' can read their own quiz history.
-     *   Request: { auth: { uid: 'user123' } }
-     * @allow (update, delete) - User 'user123' can update/delete a quiz history entry under their own user ID.
-     *   Request: { auth: { uid: 'user123' } }
-     * @deny (create) - User 'user456' cannot create a quiz history entry under user 'user123'.
-     *   Request: { auth: { uid: 'user456' }, resource: { data: { userId: 'user123', quizName: 'Math Quiz', points: 90, correctAnswers: 27, wrongAnswers: 3, completionDate: '2024-01-01T12:00:00Z' } } }
-     * @deny (get, list) - User 'user456' cannot read quiz history of user 'user123'.
-     *   Request: { auth: { uid: 'user456' } }
-     * @deny (update, delete) - User 'user456' cannot update/delete a quiz history entry under user 'user123'.
-     *   Request: { auth: { uid: 'user456' } }
-     * @principle Enforces document ownership via path; users can only access their own quiz history.
+     * @allow (list) User OJivuWtGOARE9HP6FaTOLe6br3G2 can list their own quiz history entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history.
+     * @allow (get) User OJivuWtGOARE9HP6FaTOLe6br3G2 can get their own quiz history entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history/someQuizId.
+     * @allow (create) User OJivuWtGOARE9HP6FaTOLe6br3G2 can create a quiz history entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history.
+     * @allow (update) User OJivuWtGOARE9HP6FaTOLe6br3G2 can update their own quiz history entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history/someQuizId.
+     * @allow (delete) User OJivuWtGOARE9HP6FaTOLe6br3G2 can delete their own quiz history entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history/someQuizId.
+     * @deny (list) User anotherUser cannot list quiz history entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history.
+     * @deny (create) User anotherUser cannot create a quiz history entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/quiz_history.
+     * @principle Enforces document ownership via path and requires authentication for all operations.
      */
     match /users/{userId}/quiz_history/{quizHistoryId} {
-      // Allow read access to authenticated users if they are the owner
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
+      // Helper function to check if the requesting user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-      // Allow create access to authenticated users if they are the owner
-      allow create: if isSignedIn() && isOwner(userId);
+      // Helper function to check if the requesting user is the owner of the EXISTING document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
 
-      // Allow update access to authenticated users if they are the owner and the resource exists
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
 
-      // Allow delete access to authenticated users if they are the owner and the resource exists
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      // Write rules
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Secure course entries for each user.
+     * @description Secures course entries, allowing only the owning user to read and write.
      * @path /users/{userId}/courses/{courseId}
-     * @allow (create) - User 'user123' can create a course under their own user ID.
-     *   Request: { auth: { uid: 'user123' }, resource: { data: { userId: 'user123', name: 'Math 101', platform: 'Coursera', totalModules: 10, modulesCompleted: 0, status: 'Not Started', addedAt: '2024-01-01T00:00:00Z' } } }
-     * @allow (get, list) - User 'user123' can read their own courses.
-     *   Request: { auth: { uid: 'user123' } }
-     * @allow (update, delete) - User 'user123' can update/delete a course under their own user ID.
-     *   Request: { auth: { uid: 'user123' } }
-     * @deny (create) - User 'user456' cannot create a course under user 'user123'.
-     *   Request: { auth: { uid: 'user456' }, resource: { data: { userId: 'user123', name: 'Math 101', platform: 'Coursera', totalModules: 10, modulesCompleted: 0, status: 'Not Started', addedAt: '2024-01-01T00:00:00Z' } } }
-     * @deny (get, list) - User 'user456' cannot read courses of user 'user123'.
-     *   Request: { auth: { uid: 'user456' } }
-     * @deny (update, delete) - User 'user456' cannot update/delete a course under user 'user123'.
-     *   Request: { auth: { uid: 'user456' } }
-     * @principle Enforces document ownership via path; users can only access their own courses.
+     * @allow (list) User OJivuWtGOARE9HP6FaTOLe6br3G2 can list their own course entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses.
+     * @allow (get) User OJivuWtGOARE9HP6FaTOLe6br3G2 can get their own course entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses/someCourseId.
+     * @allow (create) User OJivuWtGOARE9HP6FaTOLe6br3G2 can create a course entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses.
+     * @allow (update) User OJivuWtGOARE9HP6FaTOLe6br3G2 can update their own course entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses/someCourseId.
+     * @allow (delete) User OJivuWtGOARE9HP6FaTOLe6br3G2 can delete their own course entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses/someCourseId.
+     * @deny (list) User anotherUser cannot list course entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses.
+     * @deny (create) User anotherUser cannot create a course entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/courses.
+     * @principle Enforces document ownership via path and requires authentication for all operations.
      */
     match /users/{userId}/courses/{courseId} {
-      // Allow read access to authenticated users if they are the owner
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
+      // Helper function to check if the requesting user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-      // Allow create access to authenticated users if they are the owner
-      allow create: if isSignedIn() && isOwner(userId);
+      // Helper function to check if the requesting user is the owner of the EXISTING document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
 
-      // Allow update access to authenticated users if they are the owner and the resource exists
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
 
-      // Allow delete access to authenticated users if they are the owner and the resource exists
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      // Write rules
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
-  }
 
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
+    /**
+     * @description Secures learning journal entries, allowing only the owning user to read and write.
+     * @path /users/{userId}/journalEntries/{entryId}
+     * @allow (list) User OJivuWtGOARE9HP6FaTOLe6br3G2 can list their own journal entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries.
+     * @allow (get) User OJivuWtGOARE9HP6FaTOLe6br3G2 can get their own journal entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries/someEntryId.
+     * @allow (create) User OJivuWtGOARE9HP6FaTOLe6br3G2 can create a journal entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries.
+     * @allow (update) User OJivuWtGOARE9HP6FaTOLe6br3G2 can update their own journal entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries/someEntryId.
+     * @allow (delete) User OJivuWtGOARE9HP6FaTOLe6br3G2 can delete their own journal entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries/someEntryId.
+     * @deny (list) User anotherUser cannot list journal entries under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries.
+     * @deny (create) User anotherUser cannot create a journal entry under /users/OJivuWtGOARE9HP6FaTOLe6br3G2/journalEntries.
+     * @principle Enforces document ownership via path and requires authentication for all operations.
+     */
+    match /users/{userId}/journalEntries/{entryId} {
+      // Helper function to check if the requesting user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
+      // Helper function to check if the requesting user is the owner of the EXISTING document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
 
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
+      // Read rules
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      // Write rules
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
   }
 }
