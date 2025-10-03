@@ -18,13 +18,51 @@ import { collection, query, where, doc, deleteDoc } from 'firebase/firestore';
 import { Skeleton } from '../ui/skeleton';
 import { JournalEntry } from '@/lib/types';
 import { Button } from '../ui/button';
-import { BookMarked, Trash2, Edit } from 'lucide-react';
+import { BookMarked, Trash2, Edit, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '../ui/badge';
 import EditJournalEntryDialog from './edit-journal-entry-dialog';
+import { provideJournalFeedbackAction } from '@/app/actions';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Checkbox } from '../ui/checkbox';
 
-interface JournalEntryListProps {
-  selectedDate: string; // YYYY-MM-DD
+interface JournalFeedback {
+    advice: string[];
+    tasks: string[];
+}
+
+function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
+    return (
+        <Alert className="mt-4">
+            <Sparkles className="h-4 w-4" />
+            <AlertTitle>AI Feedback & Action Plan</AlertTitle>
+            <AlertDescription>
+                <div className="space-y-4 mt-2">
+                    <div>
+                        <h4 className="font-semibold text-foreground">Advice for You</h4>
+                        <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
+                            {feedback.advice.map((item, index) => (
+                                <li key={`advice-${index}`}>{item}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-semibold text-foreground">Your To-Do List</h4>
+                        <div className="space-y-2 mt-2">
+                            {feedback.tasks.map((task, index) => (
+                                <div key={`task-${index}`} className="flex items-center gap-2">
+                                    <Checkbox id={`task-${index}-${Date.now()}`} />
+                                    <label htmlFor={`task-${index}-${Date.now()}`} className="text-xs font-normal">
+                                        {task}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </AlertDescription>
+        </Alert>
+    )
 }
 
 function JournalEntryItem({ entry }: { entry: JournalEntry }) {
@@ -32,6 +70,9 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
   const { user } = useUser();
   const { toast } = useToast();
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [feedback, setFeedback] = useState<JournalFeedback | null>(null);
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
   const handleDelete = async () => {
     if (!user || !firestore) return;
@@ -57,22 +98,40 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
     }
   };
 
+  const handleGetFeedback = async () => {
+    setIsLoadingFeedback(true);
+    setFeedback(null);
+    setFeedbackError(null);
+
+    const journalContent = `
+        Overall Reflection: ${entry.reflection}
+        Course Work:
+        ${entry.courseProgress.map(p => `- ${p.courseName}: ${p.notes}`).join('\n')}
+    `;
+
+    const result = await provideJournalFeedbackAction({ journalContent });
+    if(result.error) {
+        setFeedbackError(result.error);
+    } else if (result.advice && result.tasks) {
+        setFeedback(result);
+    }
+    setIsLoadingFeedback(false);
+  }
+
   return (
     <div className="border p-4 rounded-lg bg-card">
-      <div className="flex justify-end items-start mb-4">
-        <div className="flex gap-2">
-           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditDialogOpen(true)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="destructive"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex justify-end items-start mb-4 gap-2">
+         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setEditDialogOpen(true)}>
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="destructive"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
       <div className="space-y-4">
         {entry.courseProgress.map((progress) => (
@@ -94,6 +153,20 @@ function JournalEntryItem({ entry }: { entry: JournalEntry }) {
             {entry.reflection}
           </p>
         </div>
+      </div>
+      <div className="mt-4 border-t pt-4">
+        <Button onClick={handleGetFeedback} disabled={isLoadingFeedback} variant="ghost" size="sm" className="w-full">
+            {isLoadingFeedback ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+            )}
+            Get AI Feedback
+        </Button>
+
+        {feedbackError && <p className="text-xs text-destructive mt-2 text-center">{feedbackError}</p>}
+        {feedback && <JournalFeedbackDisplay feedback={feedback} />}
+
       </div>
        <EditJournalEntryDialog
         isOpen={isEditDialogOpen}

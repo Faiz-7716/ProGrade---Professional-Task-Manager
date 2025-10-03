@@ -22,6 +22,10 @@ import {
   ProvideDailyGrowthSuggestionsInput,
 } from '@/ai/flows/provide-daily-growth-suggestions';
 import {
+  provideJournalFeedback,
+  ProvideJournalFeedbackInput,
+} from '@/ai/flows/provide-journal-feedback';
+import {
   suggestHeadline,
   SuggestHeadlineInput,
 } from '@/ai/flows/suggest-headline';
@@ -103,3 +107,12 @@ export async function generateQuizAction(input: GenerateQuizInput) {
       return handleActionError(e);
     }
   }
+
+export async function provideJournalFeedbackAction(input: ProvideJournalFeedbackInput) {
+    try {
+        const result = await provideJournalFeedback(input);
+        return result;
+    } catch (e) {
+        return handleActionError(e);
+    }
+}
