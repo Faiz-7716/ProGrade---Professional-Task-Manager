@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "QuizHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QuizHistory",
+      "type": "object",
+      "description": "Stores the history of quizzes taken by users, including points, and answer statistics.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the quiz history entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N QuizHistory). The unique identifier of the user who took the quiz."
+        },
+        "quizName": {
+          "type": "string",
+          "description": "The name or title of the quiz."
+        },
+        "points": {
+          "type": "number",
+          "description": "The total points earned by the user on the quiz."
+        },
+        "correctAnswers": {
+          "type": "number",
+          "description": "The number of questions answered correctly."
+        },
+        "wrongAnswers": {
+          "type": "number",
+          "description": "The number of questions answered incorrectly."
+        },
+        "completionDate": {
+          "type": "string",
+          "description": "The date and time when the quiz was completed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "quizName",
+        "points",
+        "correctAnswers",
+        "wrongAnswers",
+        "completionDate"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the LinkedSpark application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "linkedInProfileId": {
+          "type": "string",
+          "description": "The LinkedIn profile ID of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        }
+      },
+      "required": [
+        "id",
+        "linkedInProfileId",
+        "email",
+        "firstName",
+        "lastName"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/quiz_history/{quizHistoryId}",
+        "definition": {
+          "entityName": "QuizHistory",
+          "schema": {
+            "$ref": "#/backend/entities/QuizHistory"
+          },
+          "description": "Stores the quiz history for each user, including points, and answer statistics. Path-based ownership ensures that only the user can access their own quiz history. No denormalized authorization fields are required.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "quizHistoryId",
+              "description": "The unique identifier of the quiz history entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to store quiz history and points, as well as correct and wrong answer ratios, for users of the LinkedSpark application. The core principle is to ensure authorization independence, allowing for secure and scalable data access. The structure implements path-based ownership for user-specific data and avoids hierarchical authorization dependencies.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user. The `userId` parameter ensures that only the user can access their own quiz history. There is no need to store the `userId` again in the quiz history document because it is already present in the parent collection. Since this path implements path-based ownership, authorization independence is already achieved. This structure also supports simple `list` operations, satisfying the QAPs.\n\nThe data structure is designed to prevent unauthorized access and ensures data integrity by leveraging Firestore's security rules in conjunction with the defined data model."
+  }
+}
