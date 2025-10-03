@@ -30,52 +30,55 @@ import {
 } from '@/components/ui/select';
 import { Loader2, PlusCircle } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Course name must be at least 3 characters.'),
   platform: z.string().min(1, 'Please select a platform.'),
   totalModules: z.coerce.number().min(1, 'Must have at least 1 module.'),
-  estimatedHours: z.coerce.number().min(1, 'Estimated hours must be at least 1.'),
+  estimatedHours: z.coerce
+    .number()
+    .min(1, 'Estimated hours must be at least 1.'),
 });
 
 const platforms = [
-    // General Learning / MOOCs
-    'Coursera',
-    'Udemy',
-    'edX',
-    'Khan Academy',
-    'Skillshare',
-    'FutureLearn',
-    'LinkedIn Learning',
-    // Coding / Tech Focused
-    'freeCodeCamp',
-    'Codecademy',
-    'LeetCode',
-    'HackerRank',
-    'Codewars',
-    'SoloLearn',
-    'Pluralsight',
-    // Professional / Corporate Skills
-    'IBM Skills Network',
-    'Tata STRIVE',
-    'Google Digital Garage',
-    'Microsoft Learn',
-    'Simplilearn',
-    // School / Academic Focused
-    'Byju’s',
-    'Toppr',
-    'Vedantu',
-    'Unacademy',
-    // Specialized / Niche
-    'DataCamp',
-    'Treehouse',
-    'Brilliant',
-    'Duolingo',
-    'Other',
-  ];
+  'Coursera',
+  'Udemy',
+  'edX',
+  'Khan Academy',
+  'Skillshare',
+  'FutureLearn',
+  'LinkedIn Learning',
+  'freeCodeCamp',
+  'Codecademy',
+  'LeetCode',
+  'HackerRank',
+  'Codewars',
+  'SoloLearn',
+  'Pluralsight',
+  'IBM Skills Network',
+  'Tata STRIVE',
+  'Google Digital Garage',
+  'Microsoft Learn',
+  'Simplilearn',
+  'Byju’s',
+  'Toppr',
+  'Vedantu',
+  'Unacademy',
+  'DataCamp',
+  'Treehouse',
+  'Brilliant',
+  'Duolingo',
+  'Other',
+];
 
 export default function AddCourseForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,19 +91,54 @@ export default function AddCourseForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to add a course.',
+      });
+      return;
+    }
+
     setIsLoading(true);
-    console.log(values);
-    // TODO: Connect to Firestore
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-    form.reset();
+    try {
+      const coursesCollection = collection(
+        firestore,
+        'users',
+        user.uid,
+        'courses'
+      );
+      await addDoc(coursesCollection, {
+        ...values,
+        userId: user.uid,
+        modulesCompleted: 0,
+        status: 'Not Started',
+        addedAt: serverTimestamp(),
+      });
+      toast({
+        title: 'Course Added!',
+        description: `${values.name} has been added to your list.`,
+      });
+      form.reset();
+    } catch (error) {
+      console.error('Error adding course:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'Could not add the course. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Add New Course</CardTitle>
-        <CardDescription>Fill in the details of the course you want to track.</CardDescription>
+        <CardDescription>
+          Fill in the details of the course you want to track.
+        </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -112,7 +150,10 @@ export default function AddCourseForm() {
                 <FormItem>
                   <FormLabel>Course Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., The Complete Web Developer Guide" {...field} />
+                    <Input
+                      placeholder="e.g., The Complete Web Developer Guide"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -124,7 +165,11 @@ export default function AddCourseForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Platform</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a platform" />
@@ -132,8 +177,10 @@ export default function AddCourseForm() {
                     </FormControl>
                     <SelectContent>
                       <ScrollArea className="h-72">
-                        {platforms.map(p => (
-                          <SelectItem key={p} value={p}>{p}</SelectItem>
+                        {platforms.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
                         ))}
                       </ScrollArea>
                     </SelectContent>
