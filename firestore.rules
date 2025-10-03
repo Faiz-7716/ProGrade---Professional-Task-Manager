@@ -1,84 +1,96 @@
 /**
- * @fileoverview Firestore Security Rules for Prograde application.
+ * @file Firebase Security Rules for Prograde application.
  *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for all data stored under the /users/{userId} path.
- * Only the authenticated user matching the {userId} segment can read or write data in their respective user data tree.
+ * @core_philosophy This ruleset enforces a strict user-ownership model,
+ * ensuring that users can only access their own data (courses and quiz history).
  *
- * Data Structure:
- * - All user-specific data (courses, quiz history) is nested under the /users/{userId} collection.
- * - This structure ensures that data is partitioned by user, enhancing security and query efficiency.
+ * @data_structure Data is organized under user-specific paths:
+ *   - /users/{userId}/quiz_history/{quizHistoryId}
+ *   - /users/{userId}/courses/{courseId}
  *
- * Key Security Decisions:
- * - User listing is implicitly disallowed by the ruleset structure.
- * - No role-based access control is implemented in this version. All data access is strictly user-specific.
- *
+ * @key_security_decisions
+ *   - Listing all users is disallowed.
+ *   - Ambiguous or missing authorization information defaults to strict denial.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the request is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user's UID matches the provided userId.
-     * @param {string} userId - The user ID to compare against the authenticated user's UID.
-     * @return {bool} True if the user is signed in and the UID matches; false otherwise.
-     * @example isOwner('someUserId') will return true if request.auth.uid == 'someUserId'.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of an existing document.
-     * @param {string} userId - The user ID to compare against the authenticated user's UID.
-     * @return {bool} True if the user is signed in, the UID matches, and the document exists; false otherwise.
-     */
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-    }
-
-
-    /**
-     * @description Secures the quiz_history collection for a specific user. Only the user can read, create, update, or delete their own quiz history entries.
+     * @description Secure quiz history entries for each user.
      * @path /users/{userId}/quiz_history/{quizHistoryId}
-     * @allow (create) User 'user123' can create a new quiz history entry under /users/user123/quiz_history/quiz1.
-     * @allow (get, list) User 'user123' can read their quiz history entries.
-     * @allow (update, delete) User 'user123' can update or delete an existing quiz history entry under /users/user123/quiz_history/quiz1.
-     * @deny (create) User 'user456' cannot create a quiz history entry under /users/user123/quiz_history/quiz1.
-     * @deny (get, list) User 'user456' cannot read quiz history entries under /users/user123/quiz_history/quiz1.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User 'user123' can create a quiz history entry under their own user ID.
+     *   Request: { auth: { uid: 'user123' }, resource: { data: { userId: 'user123', quizName: 'Math Quiz', points: 90, correctAnswers: 27, wrongAnswers: 3, completionDate: '2024-01-01T12:00:00Z' } } }
+     * @allow (get, list) - User 'user123' can read their own quiz history.
+     *   Request: { auth: { uid: 'user123' } }
+     * @allow (update, delete) - User 'user123' can update/delete a quiz history entry under their own user ID.
+     *   Request: { auth: { uid: 'user123' } }
+     * @deny (create) - User 'user456' cannot create a quiz history entry under user 'user123'.
+     *   Request: { auth: { uid: 'user456' }, resource: { data: { userId: 'user123', quizName: 'Math Quiz', points: 90, correctAnswers: 27, wrongAnswers: 3, completionDate: '2024-01-01T12:00:00Z' } } }
+     * @deny (get, list) - User 'user456' cannot read quiz history of user 'user123'.
+     *   Request: { auth: { uid: 'user456' } }
+     * @deny (update, delete) - User 'user456' cannot update/delete a quiz history entry under user 'user123'.
+     *   Request: { auth: { uid: 'user456' } }
+     * @principle Enforces document ownership via path; users can only access their own quiz history.
      */
     match /users/{userId}/quiz_history/{quizHistoryId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      // Allow read access to authenticated users if they are the owner
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+
+      // Allow create access to authenticated users if they are the owner
+      allow create: if isSignedIn() && isOwner(userId);
+
+      // Allow update access to authenticated users if they are the owner and the resource exists
+      allow update: if isSignedIn() && isExistingOwner(userId);
+
+      // Allow delete access to authenticated users if they are the owner and the resource exists
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secures the courses collection for a specific user. Only the user can read, create, update, or delete their own courses.
+     * @description Secure course entries for each user.
      * @path /users/{userId}/courses/{courseId}
-     * @allow (create) User 'user123' can create a new course under /users/user123/courses/course1.
-     * @allow (get, list) User 'user123' can read their courses.
-     * @allow (update, delete) User 'user123' can update or delete an existing course under /users/user123/courses/course1.
-     * @deny (create) User 'user456' cannot create a course under /users/user123/courses/course1.
-     * @deny (get, list) User 'user456' cannot read courses under /users/user123/courses/course1.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User 'user123' can create a course under their own user ID.
+     *   Request: { auth: { uid: 'user123' }, resource: { data: { userId: 'user123', name: 'Math 101', platform: 'Coursera', totalModules: 10, modulesCompleted: 0, status: 'Not Started', addedAt: '2024-01-01T00:00:00Z' } } }
+     * @allow (get, list) - User 'user123' can read their own courses.
+     *   Request: { auth: { uid: 'user123' } }
+     * @allow (update, delete) - User 'user123' can update/delete a course under their own user ID.
+     *   Request: { auth: { uid: 'user123' } }
+     * @deny (create) - User 'user456' cannot create a course under user 'user123'.
+     *   Request: { auth: { uid: 'user456' }, resource: { data: { userId: 'user123', name: 'Math 101', platform: 'Coursera', totalModules: 10, modulesCompleted: 0, status: 'Not Started', addedAt: '2024-01-01T00:00:00Z' } } }
+     * @deny (get, list) - User 'user456' cannot read courses of user 'user123'.
+     *   Request: { auth: { uid: 'user456' } }
+     * @deny (update, delete) - User 'user456' cannot update/delete a course under user 'user123'.
+     *   Request: { auth: { uid: 'user456' } }
+     * @principle Enforces document ownership via path; users can only access their own courses.
      */
     match /users/{userId}/courses/{courseId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      // Allow read access to authenticated users if they are the owner
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+
+      // Allow create access to authenticated users if they are the owner
+      allow create: if isSignedIn() && isOwner(userId);
+
+      // Allow update access to authenticated users if they are the owner and the resource exists
+      allow update: if isSignedIn() && isExistingOwner(userId);
+
+      // Allow delete access to authenticated users if they are the owner and the resource exists
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
   }
 }
