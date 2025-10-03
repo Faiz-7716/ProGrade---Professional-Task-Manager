@@ -21,7 +21,7 @@ import {
 } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import { JournalEntry } from '@/lib/types';
-import { DayContentProps } from 'react-day-picker';
+import { DayPicker, DayContentProps } from 'react-day-picker';
 
 export default function DailyJournalPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -43,8 +43,10 @@ export default function DailyJournalPage() {
 
   const formattedDate = format(selectedDate, 'yyyy-MM-dd');
   
-  const DayContent = (props: DayContentProps) => {
-    const isScheduled = props.activeModifiers.scheduled;
+  const DayContent = ({ date, ...props }: DayContentProps) => {
+    const isScheduled = scheduledDays.some(
+      (scheduledDay) => format(scheduledDay, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+    );
     return (
       <div className="relative flex items-center justify-center h-full w-full">
         {props.dayNumber}
@@ -88,7 +90,7 @@ export default function DailyJournalPage() {
               mode="single"
               selected={selectedDate}
               onSelect={(day) => day && setSelectedDate(day)}
-              modifiers={{ scheduled: scheduledDays }}
+              modifiers={{}}
               components={{ DayContent }}
               initialFocus
             />
