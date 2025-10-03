@@ -13,7 +13,7 @@ export default function LoginPage() {
         <div className="hidden md:flex flex-col justify-between p-8 lg:p-12 bg-primary/5">
           <Link href="/" className="flex items-center space-x-2 transition-transform duration-200 hover:scale-105 w-fit">
             <Icons.logo className="h-8 w-8 text-primary" />
-            <span className="font-bold text-lg font-headline">LinkedSpark</span>
+            <span className="font-bold text-lg font-headline">Prograde</span>
           </Link>
           {loginIllustration && (
             <div className="flex justify-center">

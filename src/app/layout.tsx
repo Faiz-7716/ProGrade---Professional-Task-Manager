@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'LinkedSpark | AI LinkedIn Growth Assistant',
+  title: 'Prograde | AI LinkedIn Growth Assistant',
   description:
     'Elevate your LinkedIn presence with AI-powered post generation, profile optimization, and growth insights.',
 };
