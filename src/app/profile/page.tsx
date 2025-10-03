@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -7,8 +8,8 @@ import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { redirect, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { User as UserIcon, Mail, LogOut } from 'lucide-react';
-import { signOut } from 'firebase/auth';
+import { User as UserIcon, Mail, LogOut, Edit, KeyRound } from 'lucide-react';
+import { signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Icons } from '@/components/icons';
@@ -28,6 +29,30 @@ export default function ProfilePage() {
     });
     router.push('/login');
   };
+
+  const handleChangePassword = async () => {
+    if (!user?.email) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not send password reset email. User email not found."
+        });
+        return;
+    }
+    try {
+        await sendPasswordResetEmail(auth, user.email);
+        toast({
+            title: "Password Reset Email Sent",
+            description: `A password reset link has been sent to ${user.email}.`
+        });
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to send password reset email. Please try again later."
+        });
+    }
+  }
 
   if (loading) {
     return (
@@ -80,21 +105,32 @@ export default function ProfilePage() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <div>
-                            <h3 className="font-semibold">Logged in as</h3>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <h3 className="font-semibold">Edit Profile</h3>
+                            <p className="text-sm text-muted-foreground">Update your name, avatar, and email.</p>
                         </div>
-                        <Button variant="destructive" onClick={handleLogout}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
+                        <Button variant="outline" disabled>
+                           <Edit className="mr-2 h-4 w-4" />
+                           Edit
                         </Button>
                     </div>
                      <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <div>
-                            <h3 className="font-semibold">Need Help?</h3>
-                            <p className="text-sm text-muted-foreground">Contact our support team.</p>
+                            <h3 className="font-semibold">Change Password</h3>
+                            <p className="text-sm text-muted-foreground">Send a password reset link to your email.</p>
                         </div>
-                        <Button variant="outline" asChild>
-                           <Link href="#">Contact Support</Link>
+                        <Button variant="outline" onClick={handleChangePassword}>
+                           <KeyRound className="mr-2 h-4 w-4" />
+                           Change
+                        </Button>
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <div>
+                            <h3 className="font-semibold">Logout</h3>
+                            <p className="text-sm text-muted-foreground">Sign out of your account.</p>
+                        </div>
+                        <Button variant="destructive" onClick={handleLogout}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
                         </Button>
                     </div>
                 </div>
