@@ -5,6 +5,12 @@
       "description": "User avatar placeholder",
       "imageUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc1OTA0Mzc5Nnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person face"
+    },
+    {
+      "id": "login-illustration",
+      "description": "Illustration of a person working on a laptop",
+      "imageUrl": "https://images.unsplash.com/photo-1485217988980-11786ced9454?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx3b21hbiUyMGxhcHRvcHxlbnwwfHx8fDE3NTk0NzExMjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman laptop"
     }
   ]
 }

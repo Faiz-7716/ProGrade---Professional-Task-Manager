@@ -34,7 +34,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Icons } from '../icons';
-import { Separator } from '../ui/separator';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
@@ -114,54 +113,16 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
+    <Card className="w-full max-w-md shadow-2xl rounded-2xl">
+      <CardHeader className="text-center">
+        <CardTitle className="text-3xl font-bold">Login</CardTitle>
         <CardDescription>
-          Enter your credentials or use a social provider.
+          Enter your details to sign in to your account.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Button
-                variant="outline"
-                type="button"
-                disabled={!!isSocialLoading}
-                onClick={() => handleSocialLogin('Google')}
-              >
-                {isSocialLoading === 'Google' ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Icons.google className="size-5" />
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                type="button"
-                disabled={!!isSocialLoading}
-                onClick={() => handleSocialLogin('GitHub')}
-              >
-                {isSocialLoading === 'GitHub' ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Icons.github className="size-5" />
-                )}
-              </Button>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
             <FormField
               control={form.control}
               name="email"
@@ -174,6 +135,7 @@ export default function LoginForm() {
                       placeholder="name@example.com"
                       {...field}
                       disabled={!!isSocialLoading}
+                      className="h-12"
                     />
                   </FormControl>
                   <FormMessage />
@@ -192,25 +154,78 @@ export default function LoginForm() {
                       placeholder="••••••••"
                       {...field}
                       disabled={!!isSocialLoading}
+                      className="h-12"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+             <div className="flex justify-end">
+              <Link href="#" className="text-sm text-primary hover:underline">
+                Having trouble signing in?
+              </Link>
+            </div>
           </CardContent>
-          <CardFooter className="flex-col items-stretch gap-4">
-            <Button type="submit" disabled={isLoading || !!isSocialLoading}>
+          <CardFooter className="flex-col items-stretch gap-6">
+            <Button type="submit" disabled={isLoading || !!isSocialLoading} size="lg" className="h-12 text-base">
               {isLoading && <Loader2 className="animate-spin" />}
-              Login with Email
+              Sign In
             </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or Sign in with
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                type="button"
+                className="h-12"
+                disabled={!!isSocialLoading}
+                onClick={() => handleSocialLogin('Google')}
+              >
+                {isSocialLoading === 'Google' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <>
+                    <Icons.google className="mr-2 size-5" />
+                    Google
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="h-12"
+                disabled={!!isSocialLoading}
+                onClick={() => handleSocialLogin('GitHub')}
+              >
+                {isSocialLoading === 'GitHub' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <>
+                    <Icons.github className="mr-2 size-5" />
+                    GitHub
+                  </>
+                )}
+              </Button>
+            </div>
+            
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
               <Link
                 href="/sign-up"
                 className="font-medium text-primary hover:underline"
               >
-                Sign Up
+                Request Now
               </Link>
             </p>
           </CardFooter>

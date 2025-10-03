@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/layout/header';
 import { AuthProvider } from '@/hooks/use-auth';
+import { AppLayout } from '@/components/layout/app-layout';
 
 export const metadata: Metadata = {
   title: 'LinkedSpark | AI LinkedIn Growth Assistant',
@@ -27,8 +27,7 @@ export default function RootLayout({
       </head>
       <body className="font-body bg-background text-foreground antialiased min-h-screen flex flex-col">
         <AuthProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
+          <AppLayout>{children}</AppLayout>
           <Toaster />
         </AuthProvider>
       </body>
