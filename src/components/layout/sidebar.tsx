@@ -5,7 +5,6 @@ import {
   BrainCircuit,
   LayoutDashboard,
   FileText,
-  ClipboardList,
   BookOpenCheck,
   History,
 } from 'lucide-react';
@@ -19,7 +18,6 @@ const navLinks = [
     icon: BrainCircuit,
   },
   { href: '/content-studio', label: 'Content Studio', icon: FileText },
-  { href: '/action-plan', label: 'Action Plan', icon: ClipboardList },
   { href: '/course-manager', label: 'Course Manager', icon: BookOpenCheck },
   { href: '/daily-journal', label: 'Daily Journal', icon: History },
   {
