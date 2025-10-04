@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Icons } from '../icons';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   email: z.string().email('Invalid email address.'),
