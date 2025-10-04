@@ -13,7 +13,7 @@ import {
   sendPasswordResetEmail,
   getRedirectResult,
 } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import {
   Card,
   CardContent,
@@ -46,31 +46,44 @@ const formSchema = z.object({
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
-  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true); // New state
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+  const { user, isUserLoading } = useUser();
 
+  // This effect will run when the component mounts and whenever the user state changes.
+  // It handles redirecting an already logged-in user to the dashboard.
   useEffect(() => {
+    if (!isUserLoading && user) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
+  // This effect runs once on mount to handle the result of a redirect login.
+  useEffect(() => {
+    // We only want to run this check once when the component mounts.
     const checkRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // A redirect has just completed.
-          // The onAuthStateChanged listener in useUser will handle the user state.
-          // We can now redirect to the dashboard.
-          handleSuccess();
+        setIsLoading(true); // Set loading state while checking
+        try {
+            const result = await getRedirectResult(auth);
+            if (result) {
+                // Successful login from redirect, the useUser hook will handle the user state
+                // and the effect above will redirect to the dashboard.
+                handleSuccess();
+            }
+        } catch (error: any) {
+            // An error occurred during the redirect login.
+            handleError(error, error.customData?._tokenResponse?.providerId);
+        } finally {
+            setIsLoading(false); // Finished checking
         }
-      } catch (error: any) {
-        handleError(error, error.customData?._tokenResponse?.providerId);
-      } finally {
-        // Finished checking for a redirect result.
-        setIsCheckingRedirect(false);
-      }
     };
 
     checkRedirectResult();
-  }, [auth]);
+    // The empty dependency array ensures this runs only once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [auth]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,7 +95,7 @@ export default function LoginForm() {
       title: 'Success!',
       description: "You've been successfully logged in.",
     });
-    router.push('/');
+    // The redirect is now handled by the useEffect watching the user state.
   };
 
   const handleError = (error: any, provider?: string) => {
@@ -137,7 +150,7 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      handleSuccess();
+      // Success is handled by the useUser hook and subsequent redirect.
     } catch (error: any) {
       handleError(error);
     } finally {
@@ -147,7 +160,7 @@ export default function LoginForm() {
 
   async function handleSocialLogin(providerName: 'Google' | 'GitHub') {
     setSocialLoading(providerName);
-    setIsLoading(true); // Keep the UI in a loading state
+    setIsLoading(true); 
     try {
       let provider: AuthProvider;
       if (providerName === 'Google') {
@@ -157,7 +170,7 @@ export default function LoginForm() {
         provider = new GithubAuthProvider();
       }
       await signInWithRedirect(auth, provider);
-      // The page will redirect from here. The result is handled by the useEffect hook on page load.
+      // The page will redirect. The result is handled by the useEffect hook on the next page load.
     } catch (error: any) {
       handleError(error, providerName);
       setIsLoading(false);
@@ -165,7 +178,16 @@ export default function LoginForm() {
     }
   }
   
-  const isOverallLoading = isLoading || isCheckingRedirect || !!isSocialLoading;
+  const isOverallLoading = isLoading || isUserLoading;
+
+  // Render a loading state or nothing while checking for user, to prevent flicker
+  if (isUserLoading || user) {
+     return (
+        <div className="flex justify-center items-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+     );
+  }
 
   return (
     <Card className="w-full max-w-md shadow-2xl rounded-2xl">
@@ -253,7 +275,7 @@ export default function LoginForm() {
                 disabled={isOverallLoading}
                 onClick={() => handleSocialLogin('Google')}
               >
-                {isSocialLoading === 'Google' || isCheckingRedirect ? (
+                {isSocialLoading === 'Google' ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>
@@ -269,7 +291,7 @@ export default function LoginForm() {
                 disabled={isOverallLoading}
                 onClick={() => handleSocialLogin('GitHub')}
               >
-                {isSocialLoading === 'GitHub' || isCheckingRedirect ? (
+                {isSocialLoading === 'GitHub' ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>

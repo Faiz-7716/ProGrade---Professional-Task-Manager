@@ -1,6 +1,6 @@
 'use client';
-import { onAuthStateChanged, User, getRedirectResult } from 'firebase/auth';
-import { useEffect, useState }from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/firebase/provider';
 
 export interface UserHookResult {
@@ -14,40 +14,15 @@ export function useUser(): UserHookResult {
   const auth = useAuth();
 
   useEffect(() => {
-    // This flag helps prevent race conditions
-    let isMounted = true; 
+    // The onAuthStateChanged listener is the single source of truth for auth state.
+    // It correctly handles all cases, including the result of a redirect.
+    const unsubscribe = onAuthStateChanged(auth, user => {
+      setUser(user);
+      setUserLoading(false);
+    });
 
-    const handleAuth = async () => {
-      // First, check if a redirect just happened.
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && isMounted) {
-          // A redirect sign-in was successful.
-          // onAuthStateChanged will handle setting the user, but we can stop the loading indicator sooner.
-           setUser(result.user);
-           setUserLoading(false);
-        }
-      } catch (error) {
-        // Handle redirect errors if necessary
-        console.error("Redirect sign-in error:", error);
-      }
-      
-      // Set up the primary listener for auth state changes.
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (isMounted) {
-          setUser(user);
-          setUserLoading(false);
-        }
-      });
-
-      return () => {
-        isMounted = false;
-        unsubscribe();
-      };
-    }
-
-    handleAuth();
-
+    // Unsubscribe on unmount to prevent memory leaks
+    return () => unsubscribe();
   }, [auth]);
 
   return { user, isUserLoading };
