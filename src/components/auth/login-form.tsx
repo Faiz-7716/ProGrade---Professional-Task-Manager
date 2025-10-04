@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   GithubAuthProvider,
   AuthProvider,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import {
@@ -65,11 +66,11 @@ export default function LoginForm() {
     if (provider) {
       if (error.code === 'auth/account-exists-with-different-credential') {
         description =
-          'An account already exists with the same email address but different sign-in credentials.';
+          'An account already exists with this email. Please sign in with the original method.';
       } else {
-        description = `Failed to sign in with ${provider}. Please check your Firebase project configuration and try again later.`;
+        description = `Failed to sign in with ${provider}. Please ensure this provider is enabled in your Firebase console.`;
       }
-    } else if (error.code === 'auth/invalid-credential') {
+    } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
       description = 'Invalid email or password.';
     }
 
@@ -78,6 +79,31 @@ export default function LoginForm() {
       title: 'Login Failed',
       description,
     });
+  };
+
+  const handlePasswordReset = async () => {
+    const email = form.getValues('email');
+    if (!email) {
+      toast({
+        variant: 'destructive',
+        title: 'Email Required',
+        description: 'Please enter your email address to reset your password.',
+      });
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: `A password reset link has been sent to ${email}.`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send password reset email. Please try again.',
+      });
+    }
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -163,9 +189,14 @@ export default function LoginForm() {
               )}
             />
              <div className="flex justify-end">
-              <Link href="#" className="text-sm text-primary hover:underline">
+              <Button
+                type="button"
+                variant="link"
+                className="text-sm text-primary hover:underline p-0 h-auto"
+                onClick={handlePasswordReset}
+              >
                 Having trouble signing in?
-              </Link>
+              </Button>
             </div>
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-6">

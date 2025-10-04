@@ -65,9 +65,9 @@ export default function SignUpForm() {
     if (provider) {
        if (error.code === 'auth/account-exists-with-different-credential') {
         description =
-          'An account already exists with the same email address but different sign-in credentials. Please log in with the original method.';
+          'An account already exists with this email. Please sign in with the original method.';
       } else {
-        description = `Failed to sign up with ${provider}. Please check your Firebase project configuration and try again later.`;
+        description = `Failed to sign up with ${provider}. Please ensure this provider is enabled in your Firebase console.`;
       }
     } else if (error.code === 'auth/email-already-in-use') {
       description = 'This email is already associated with an account. Please log in instead.';
