@@ -125,6 +125,7 @@ export default function LoginForm() {
       let provider: AuthProvider;
       if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
       } else {
         provider = new GithubAuthProvider();
       }
