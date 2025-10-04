@@ -12,7 +12,6 @@ import {
   GithubAuthProvider,
   AuthProvider,
   sendPasswordResetEmail,
-  getRedirectResult,
 } from 'firebase/auth';
 import { useAuth, useUser } from '@/firebase';
 import {
@@ -58,33 +57,6 @@ export default function LoginForm() {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
-
-  // Handle result of a redirect login
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      // Set loading state to prevent user interaction
-      setIsLoading(true); 
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // If login was successful, the `useUser` hook will update the `user` object,
-          // and the effect above will trigger the redirect to the dashboard.
-          toast({
-            title: 'Success!',
-            description: "You've been successfully logged in.",
-          });
-        }
-      } catch (error: any) {
-        handleError(error, error.customData?._tokenResponse?.providerId);
-      } finally {
-        // Finished checking, allow user interaction again if no user was found
-        setIsLoading(false); 
-      }
-    };
-    checkRedirectResult();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth]);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
