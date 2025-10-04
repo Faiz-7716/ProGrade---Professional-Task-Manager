@@ -51,12 +51,12 @@ function JournalFeedbackDisplay({ feedback }: { feedback: JournalFeedback }) {
                             {feedback.tasks.map((task, index) => (
                                 <li key={`task-${index}`}>{task}</li>
                             ))}
-                        </div>
+                        </ul>
                     </div>
                 </div>
             </AlertDescription>
         </Alert>
-    )
+    );
 }
 
 function JournalEntryItem({ entry }: { entry: JournalEntry }) {
