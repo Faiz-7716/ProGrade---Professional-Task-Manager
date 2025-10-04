@@ -13,6 +13,7 @@ import {
   History,
   BookText,
   ListChecks,
+  Wallet,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export const navLinks = [
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
   { href: '/quiz-generator', label: 'Knowledge Forge', icon: BrainCircuit },
   { href: '/quiz-history', label: 'Quiz History', icon: History },
+  { href: '/expense-tracker', label: 'Expense Tracker', icon: Wallet },
 ];
 
 export function NavLink({

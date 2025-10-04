@@ -23,3 +23,13 @@ export interface JournalEntry {
         notes: string;
     }[];
 }
+
+export interface Expense {
+    id: string;
+    userId: string;
+    amount: number;
+    category: 'Food' | 'Shopping' | 'Transport' | 'Gifts' | 'Health' | 'Other';
+    paymentMethod: 'Cash' | 'Card' | 'Online';
+    comment?: string;
+    date: Timestamp;
+}

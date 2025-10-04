@@ -1,6 +1,41 @@
 
 {
   "entities": {
+    "Expense": {
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents a single expense entry for a user.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this expense."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The monetary value of the expense."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the expense (e.g., Food, Shopping, Transport).",
+          "enum": ["Food", "Shopping", "Transport", "Gifts", "Health", "Other"]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The method of payment used.",
+           "enum": ["Cash", "Card", "Online"]
+        },
+        "comment": {
+          "type": "string",
+          "description": "An optional comment or note about the expense."
+        },
+        "date": {
+          "type": "string",
+          "description": "The timestamp when the expense occurred.",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "amount", "category", "paymentMethod", "date"]
+    },
     "JournalEntry": {
       "title": "Journal Entry",
       "type": "object",
@@ -187,6 +222,26 @@
   },
   "firestore": {
     "structure": [
+       {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores individual expense entries for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier of the expense entry."
+            }
+          ]
+        }
+      },
       {
         "path": "/users/{userId}/quiz_history/{quizHistoryId}",
         "definition": {
@@ -248,6 +303,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user."
+    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/expenses/{expenseId}`: Stores individual expense entries for each user.\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user."
   }
 }
