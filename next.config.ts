@@ -32,7 +32,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    turbopack: true,
+    dev: {
+        turbopack: true,
+    },
   },
 };
 
