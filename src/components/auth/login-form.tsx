@@ -45,22 +45,26 @@ const formSchema = z.object({
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setSocialLoading] = useState<string | null>(null);
+  const [isCheckingRedirect, setIsCheckingRedirect] = useState(true); // New state
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
 
   useEffect(() => {
     const checkRedirectResult = async () => {
-      setIsLoading(true);
       try {
         const result = await getRedirectResult(auth);
         if (result) {
+          // A redirect has just completed.
+          // The onAuthStateChanged listener in useUser will handle the user state.
+          // We can now redirect to the dashboard.
           handleSuccess();
         }
       } catch (error: any) {
         handleError(error, error.customData?._tokenResponse?.providerId);
       } finally {
-        setIsLoading(false);
+        // Finished checking for a redirect result.
+        setIsCheckingRedirect(false);
       }
     };
 
@@ -110,6 +114,7 @@ export default function LoginForm() {
       });
       return;
     }
+    setIsLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
       toast({
@@ -122,6 +127,8 @@ export default function LoginForm() {
         title: 'Error',
         description: 'Failed to send password reset email. Please try again.',
       });
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -139,7 +146,7 @@ export default function LoginForm() {
 
   async function handleSocialLogin(providerName: 'Google' | 'GitHub') {
     setSocialLoading(providerName);
-    setIsLoading(true);
+    setIsLoading(true); // Keep the UI in a loading state
     try {
       let provider: AuthProvider;
       if (providerName === 'Google') {
@@ -149,13 +156,15 @@ export default function LoginForm() {
         provider = new GithubAuthProvider();
       }
       await signInWithRedirect(auth, provider);
-      // The redirect will happen here. The result is handled by the useEffect hook.
+      // The page will redirect from here. The result is handled by the useEffect hook on page load.
     } catch (error: any) {
       handleError(error, providerName);
       setIsLoading(false);
       setSocialLoading(null);
     }
   }
+  
+  const isOverallLoading = isLoading || isCheckingRedirect || !!isSocialLoading;
 
   return (
     <Card className="w-full max-w-md shadow-2xl rounded-2xl">
@@ -179,7 +188,7 @@ export default function LoginForm() {
                       type="email"
                       placeholder="name@example.com"
                       {...field}
-                      disabled={isLoading || !!isSocialLoading}
+                      disabled={isOverallLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -198,7 +207,7 @@ export default function LoginForm() {
                       type="password"
                       placeholder="••••••••"
                       {...field}
-                      disabled={isLoading || !!isSocialLoading}
+                      disabled={isOverallLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -212,13 +221,14 @@ export default function LoginForm() {
                 variant="link"
                 className="text-sm text-primary hover:underline p-0 h-auto"
                 onClick={handlePasswordReset}
+                disabled={isOverallLoading}
               >
                 Having trouble signing in?
               </Button>
             </div>
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-6">
-            <Button type="submit" disabled={isLoading || !!isSocialLoading} size="lg" className="h-12 text-base">
+            <Button type="submit" disabled={isOverallLoading} size="lg" className="h-12 text-base">
               {(isLoading && !isSocialLoading) && <Loader2 className="animate-spin" />}
               Sign In
             </Button>
@@ -239,10 +249,10 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={isLoading || !!isSocialLoading}
+                disabled={isOverallLoading}
                 onClick={() => handleSocialLogin('Google')}
               >
-                {isSocialLoading === 'Google' || (isLoading && isSocialLoading === null) ? (
+                {isSocialLoading === 'Google' || isCheckingRedirect ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>
@@ -255,10 +265,10 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={isLoading || !!isSocialLoading}
+                disabled={isOverallLoading}
                 onClick={() => handleSocialLogin('GitHub')}
               >
-                {isSocialLoading === 'GitHub' || (isLoading && isSocialLoading === null) ? (
+                {isSocialLoading === 'GitHub' || isCheckingRedirect ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>
@@ -273,7 +283,7 @@ export default function LoginForm() {
               Don't have an account?{' '}
               <Link
                 href="/sign-up"
-                className="font-medium text-primary hover:underline"
+                className={cn("font-medium text-primary hover:underline", isOverallLoading && "pointer-events-none opacity-50")}
               >
                 Request Now
               </Link>
