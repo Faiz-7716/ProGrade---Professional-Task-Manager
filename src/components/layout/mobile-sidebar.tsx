@@ -2,8 +2,11 @@
 import {
   Sheet,
   SheetContent,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import { SidebarContent } from './sidebar';
+import { Button } from '../ui/button';
+import { Menu } from 'lucide-react';
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -22,5 +25,3 @@ export default function MobileSidebar({
     </Sheet>
   );
 }
-
-    
