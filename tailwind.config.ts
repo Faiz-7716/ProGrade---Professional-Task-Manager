@@ -18,7 +18,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
+        body: ['Exo 2', 'sans-serif'],
         headline: ['Poppins', 'sans-serif'],
         code: ['monospace'],
       },
