@@ -1,6 +1,5 @@
-
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -21,7 +20,7 @@ import {
 } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import { JournalEntry } from '@/lib/types';
-import { DayPicker, DayContentProps, DayProps } from 'react-day-picker';
+import { DayPicker, DayContentProps } from 'react-day-picker';
 
 export default function DailyJournalPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -35,7 +34,7 @@ export default function DailyJournalPage() {
 
   const { data: allEntries } = useCollection<JournalEntry>(allEntriesQuery);
 
-  const scheduledDays = useMemoFirebase(() => {
+  const scheduledDays = useMemo(() => {
     return allEntries
       ? allEntries.map((entry) => parseISO(entry.entryDate))
       : [];
@@ -57,9 +56,6 @@ export default function DailyJournalPage() {
     );
   };
   
-  const Day = (props: DayProps & { dayNumber: number }) => {
-     return <DayContent {...props} />;
-  };
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -94,9 +90,9 @@ export default function DailyJournalPage() {
               mode="single"
               selected={selectedDate}
               onSelect={(day) => day && setSelectedDate(day)}
-              modifiers={{}}
+              modifiers={{ scheduled: scheduledDays }}
               components={{
-                Day: (props) => <Day {...props} dayNumber={props.date.getDate()} />,
+                DayContent,
               }}
               initialFocus
             />
