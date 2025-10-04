@@ -1,17 +1,17 @@
-
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import {
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   GithubAuthProvider,
   AuthProvider,
   sendPasswordResetEmail,
+  getRedirectResult,
 } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import {
@@ -48,6 +48,24 @@ export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
+
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          handleSuccess();
+        }
+      } catch (error: any) {
+        handleError(error, error.customData?._tokenResponse?.providerId);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkRedirectResult();
+  }, [auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -121,6 +139,7 @@ export default function LoginForm() {
 
   async function handleSocialLogin(providerName: 'Google' | 'GitHub') {
     setSocialLoading(providerName);
+    setIsLoading(true);
     try {
       let provider: AuthProvider;
       if (providerName === 'Google') {
@@ -129,11 +148,11 @@ export default function LoginForm() {
       } else {
         provider = new GithubAuthProvider();
       }
-      await signInWithPopup(auth, provider);
-      handleSuccess();
+      await signInWithRedirect(auth, provider);
+      // The redirect will happen here. The result is handled by the useEffect hook.
     } catch (error: any) {
       handleError(error, providerName);
-    } finally {
+      setIsLoading(false);
       setSocialLoading(null);
     }
   }
@@ -160,7 +179,7 @@ export default function LoginForm() {
                       type="email"
                       placeholder="name@example.com"
                       {...field}
-                      disabled={!!isSocialLoading}
+                      disabled={isLoading || !!isSocialLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -179,7 +198,7 @@ export default function LoginForm() {
                       type="password"
                       placeholder="••••••••"
                       {...field}
-                      disabled={!!isSocialLoading}
+                      disabled={isLoading || !!isSocialLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -200,7 +219,7 @@ export default function LoginForm() {
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-6">
             <Button type="submit" disabled={isLoading || !!isSocialLoading} size="lg" className="h-12 text-base">
-              {isLoading && <Loader2 className="animate-spin" />}
+              {(isLoading && !isSocialLoading) && <Loader2 className="animate-spin" />}
               Sign In
             </Button>
             
@@ -220,10 +239,10 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={!!isSocialLoading}
+                disabled={isLoading || !!isSocialLoading}
                 onClick={() => handleSocialLogin('Google')}
               >
-                {isSocialLoading === 'Google' ? (
+                {isSocialLoading === 'Google' || (isLoading && isSocialLoading === null) ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>
@@ -236,10 +255,10 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={!!isSocialLoading}
+                disabled={isLoading || !!isSocialLoading}
                 onClick={() => handleSocialLogin('GitHub')}
               >
-                {isSocialLoading === 'GitHub' ? (
+                {isSocialLoading === 'GitHub' || (isLoading && isSocialLoading === null) ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <>

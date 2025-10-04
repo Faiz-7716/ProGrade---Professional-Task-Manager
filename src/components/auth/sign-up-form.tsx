@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import {
   createUserWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   GithubAuthProvider,
   AuthProvider,
@@ -107,8 +107,7 @@ export default function SignUpForm() {
       } else {
         provider = new GithubAuthProvider();
       }
-      await signInWithPopup(auth, provider);
-      handleSuccess();
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       handleError(error, providerName);
     } finally {
