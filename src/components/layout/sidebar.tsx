@@ -37,7 +37,6 @@ import {
 } from '@/components/ui/tooltip';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { ThemeToggle } from '../theme-toggle';
 
 export const navLinks = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -169,9 +168,6 @@ export function SidebarContent({ isMobile = false, onLinkClick }: { isMobile?: b
                                 <span>Profile</span>
                             </Link>
                         </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <ThemeToggle />
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>
                             <LogOut className="mr-2 h-4 w-4" />
@@ -220,9 +216,6 @@ export function SidebarContent({ isMobile = false, onLinkClick }: { isMobile?: b
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-               <ThemeToggle />
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
