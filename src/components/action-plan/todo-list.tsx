@@ -1,74 +1,252 @@
-'use client';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { Skeleton } from '../ui/skeleton';
-import { Todo } from '@/lib/types';
-import TodoItem from './todo-item';
-
-export default function TodoList() {
-  const { user } = useUser();
-  const firestore = useFirestore();
-
-  const todosQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(
-      collection(firestore, 'users', user.uid, 'todos'),
-      orderBy('createdAt', 'desc')
-    );
-  }, [user, firestore]);
-
-  const { data: todos, isLoading, error } = useCollection<Todo>(todosQuery);
-
-  const pendingTodos = todos?.filter(t => t.status === 'pending');
-  const completedTodos = todos?.filter(t => t.status === 'completed');
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>My Tasks</CardTitle>
-        <CardDescription>
-          A list of all your tasks to complete.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div>
-             <h3 className="text-sm font-semibold text-muted-foreground mb-2">Pending</h3>
-             <div className="space-y-2">
-                {isLoading && Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-                {!isLoading && pendingTodos && pendingTodos.length > 0 && (
-                    pendingTodos.map(todo => <TodoItem key={todo.id} todo={todo} />)
-                )}
-                {!isLoading && (!pendingTodos || pendingTodos.length === 0) && (
-                    <p className="text-sm text-center py-4 text-muted-foreground">No pending tasks. Great job!</p>
-                )}
-             </div>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">Completed</h3>
-            <div className="space-y-2">
-                {!isLoading && completedTodos && completedTodos.length > 0 && (
-                    completedTodos.map(todo => <TodoItem key={todo.id} todo={todo} />)
-                )}
-                {!isLoading && (!completedTodos || completedTodos.length === 0) && (
-                    <p className="text-sm text-center py-4 text-muted-foreground">No completed tasks yet.</p>
-                )}
-            </div>
-          </div>
-           {error && (
-            <div className="text-center py-12 text-destructive">
-                <p>Error loading tasks. Please try again later.</p>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+{
+  "entities": {
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "type": "object",
+      "description": "Represents a daily journal entry for a user to track learning and reflections.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this journal entry."
+        },
+        "entryDate": {
+          "type": "string",
+          "description": "The date for the journal entry in YYYY-MM-DD format."
+        },
+        "courseProgress": {
+          "type": "array",
+          "description": "An array of objects detailing progress made in specific courses.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "courseId": {
+                "type": "string"
+              },
+              "courseName": {
+                "type": "string"
+              },
+              "notes": {
+                "type": "string"
+              }
+            },
+            "required": ["courseId", "courseName", "notes"]
+          }
+        },
+        "reflection": {
+          "type": "string",
+          "description": "The user's overall reflection or thoughts for the day."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "The timestamp when the entry was created.",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "entryDate", "courseProgress", "reflection", "createdAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "type": "object",
+      "description": "Represents an online course a user is tracking.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this course."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the course."
+        },
+        "platform": {
+          "type": "string",
+          "description": "The platform where the course is hosted (e.g., Udemy, Coursera)."
+        },
+        "totalModules": {
+          "type": "number",
+          "description": "The total number of modules or lessons in the course."
+        },
+        "modulesCompleted": {
+          "type": "number",
+          "description": "The number of modules the user has completed."
+        },
+        "estimatedHours": {
+          "type": "number",
+          "description": "The estimated total hours to complete the course."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the course.",
+          "enum": [
+            "Not Started",
+            "Ongoing",
+            "Completed"
+          ]
+        },
+        "addedAt": {
+          "type": "string",
+          "description": "The timestamp when the course was added.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "platform",
+        "totalModules",
+        "modulesCompleted",
+        "status",
+        "addedAt"
+      ]
+    },
+    "QuizHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QuizHistory",
+      "type": "object",
+      "description": "Stores the history of quizzes taken by users, including points, and answer statistics.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The unique identifier of the user who took the quiz."
+        },
+        "quizName": {
+          "type": "string",
+          "description": "The name or title of the quiz."
+        },
+        "points": {
+          "type": "number",
+          "description": "The total points earned by the user on the quiz."
+        },
+        "correctAnswers": {
+          "type": "number",
+          "description": "The number of questions answered correctly."
+        },
+        "wrongAnswers": {
+          "type": "number",
+          "description": "The number of questions answered incorrectly."
+        },
+        "completionDate": {
+          "type": "string",
+          "description": "The date and time when the quiz was completed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "quizName",
+        "points",
+        "correctAnswers",
+        "wrongAnswers",
+        "completionDate"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Prograde application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "linkedInProfileId": {
+          "type": "string",
+          "description": "The LinkedIn profile ID of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        }
+      },
+      "required": [
+        "id",
+        "linkedInProfileId",
+        "email",
+        "firstName",
+        "lastName"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous",
+      "google.com",
+      "github.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/quiz_history/{quizHistoryId}",
+        "definition": {
+          "entityName": "QuizHistory",
+          "schema": {
+            "$ref": "#/backend/entities/QuizHistory"
+          },
+          "description": "Stores the quiz history for each user, including points, and answer statistics. Path-based ownership ensures that only the user can access their own quiz history. No denormalized authorization fields are required.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "quizHistoryId",
+              "description": "The unique identifier of the quiz history entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/courses/{courseId}",
+        "definition": {
+          "entityName": "Course",
+          "schema": {
+            "$ref": "#/backend/entities/Course"
+          },
+          "description": "Stores the courses for each user. Path-based ownership ensures that only the user can access their own courses.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "courseId",
+              "description": "The unique identifier of the course entry."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/users/{userId}/journalEntries/{entryId}",
+        "definition": {
+          "entityName": "JournalEntry",
+          "schema": {
+            "$ref": "#/backend/entities/JournalEntry"
+          },
+          "description": "Stores daily journal entries for each user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "entryId",
+              "description": "The unique identifier of the journal entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to store user-related data for the Prograde application. The structure implements path-based ownership for all user-specific data to ensure security and query efficiency.\n\nThe structure is as follows:\n\n*   `/users/{userId}/quiz_history/{quizHistoryId}`: Stores the quiz history for each user.\n*   `/users/{userId}/courses/{courseId}`: Stores the courses for each user.\n*   `/users/{userId}/journalEntries/{entryId}`: Stores daily journal entries for each user."
+  }
 }
