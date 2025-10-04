@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -124,9 +125,6 @@ export default function LoginForm() {
       let provider: AuthProvider;
       if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
-        provider.setCustomParameters({
-          prompt: 'select_account'
-        });
       } else {
         provider = new GithubAuthProvider();
       }
