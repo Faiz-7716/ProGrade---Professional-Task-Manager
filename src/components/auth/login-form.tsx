@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -51,52 +52,44 @@ export default function LoginForm() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
 
-  // This effect will run when the component mounts and whenever the user state changes.
-  // It handles redirecting an already logged-in user to the dashboard.
+  // Redirect if user is already logged in
   useEffect(() => {
     if (!isUserLoading && user) {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
 
-  // This effect runs once on mount to handle the result of a redirect login.
+  // Handle result of a redirect login
   useEffect(() => {
-    // We only want to run this check once when the component mounts.
     const checkRedirectResult = async () => {
-        setIsLoading(true); // Set loading state while checking
-        try {
-            const result = await getRedirectResult(auth);
-            if (result) {
-                // Successful login from redirect, the useUser hook will handle the user state
-                // and the effect above will redirect to the dashboard.
-                handleSuccess();
-            }
-        } catch (error: any) {
-            // An error occurred during the redirect login.
-            handleError(error, error.customData?._tokenResponse?.providerId);
-        } finally {
-            setIsLoading(false); // Finished checking
+      // Set loading state to prevent user interaction
+      setIsLoading(true); 
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // If login was successful, the `useUser` hook will update the `user` object,
+          // and the effect above will trigger the redirect to the dashboard.
+          toast({
+            title: 'Success!',
+            description: "You've been successfully logged in.",
+          });
         }
+      } catch (error: any) {
+        handleError(error, error.customData?._tokenResponse?.providerId);
+      } finally {
+        // Finished checking, allow user interaction again if no user was found
+        setIsLoading(false); 
+      }
     };
-
     checkRedirectResult();
-    // The empty dependency array ensures this runs only once on mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [auth]);
+  }, [auth]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', password: '' },
   });
-
-  const handleSuccess = () => {
-    toast({
-      title: 'Success!',
-      description: "You've been successfully logged in.",
-    });
-    // The redirect is now handled by the useEffect watching the user state.
-  };
 
   const handleError = (error: any, provider?: string) => {
     let description = 'An unexpected error occurred. Please try again.';
@@ -121,11 +114,7 @@ export default function LoginForm() {
   const handlePasswordReset = async () => {
     const email = form.getValues('email');
     if (!email) {
-      toast({
-        variant: 'destructive',
-        title: 'Email Required',
-        description: 'Please enter your email address to reset your password.',
-      });
+      form.trigger('email');
       return;
     }
     setIsLoading(true);
@@ -136,11 +125,7 @@ export default function LoginForm() {
         description: `A password reset link has been sent to ${email}.`,
       });
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to send password reset email. Please try again.',
-      });
+      handleError(error);
     } finally {
         setIsLoading(false);
     }
@@ -165,7 +150,6 @@ export default function LoginForm() {
       let provider: AuthProvider;
       if (providerName === 'Google') {
         provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
       } else {
         provider = new GithubAuthProvider();
       }
@@ -178,12 +162,10 @@ export default function LoginForm() {
     }
   }
   
-  const isOverallLoading = isLoading || isUserLoading;
-
-  // Render a loading state or nothing while checking for user, to prevent flicker
+  // While checking user state or if user exists, show a loading spinner
   if (isUserLoading || user) {
      return (
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center p-12">
             <Loader2 className="h-8 w-8 animate-spin" />
         </div>
      );
@@ -211,7 +193,7 @@ export default function LoginForm() {
                       type="email"
                       placeholder="name@example.com"
                       {...field}
-                      disabled={isOverallLoading}
+                      disabled={isLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -230,7 +212,7 @@ export default function LoginForm() {
                       type="password"
                       placeholder="••••••••"
                       {...field}
-                      disabled={isOverallLoading}
+                      disabled={isLoading}
                       className="h-12"
                     />
                   </FormControl>
@@ -244,14 +226,14 @@ export default function LoginForm() {
                 variant="link"
                 className="text-sm text-primary hover:underline p-0 h-auto"
                 onClick={handlePasswordReset}
-                disabled={isOverallLoading}
+                disabled={isLoading}
               >
-                Having trouble signing in?
+                Forgot Password?
               </Button>
             </div>
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-6">
-            <Button type="submit" disabled={isOverallLoading} size="lg" className="h-12 text-base">
+            <Button type="submit" disabled={isLoading} size="lg" className="h-12 text-base">
               {(isLoading && !isSocialLoading) && <Loader2 className="animate-spin" />}
               Sign In
             </Button>
@@ -272,7 +254,7 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={isOverallLoading}
+                disabled={isLoading}
                 onClick={() => handleSocialLogin('Google')}
               >
                 {isSocialLoading === 'Google' ? (
@@ -288,7 +270,7 @@ export default function LoginForm() {
                 variant="outline"
                 type="button"
                 className="h-12"
-                disabled={isOverallLoading}
+                disabled={isLoading}
                 onClick={() => handleSocialLogin('GitHub')}
               >
                 {isSocialLoading === 'GitHub' ? (
@@ -306,9 +288,9 @@ export default function LoginForm() {
               Don't have an account?{' '}
               <Link
                 href="/sign-up"
-                className={cn("font-medium text-primary hover:underline", isOverallLoading && "pointer-events-none opacity-50")}
+                className={cn("font-medium text-primary hover:underline", isLoading && "pointer-events-none opacity-50")}
               >
-                Request Now
+                Sign Up
               </Link>
             </p>
           </CardFooter>
