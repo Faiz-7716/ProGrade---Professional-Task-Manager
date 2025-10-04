@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -27,7 +28,7 @@ export default function RootLayout({
         />
         <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body bg-animated-gradient text-foreground antialiased">
+      <body className="font-body bg-animated-gradient text-foreground antialiased" suppressHydrationWarning={true}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
