@@ -157,7 +157,7 @@ export default function QuizGenerator() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>AI Quiz Generator</CardTitle>
+        <CardTitle>AI Knowledge Forge</CardTitle>
         <CardDescription>
           Test your knowledge with a personalized quiz.
         </CardDescription>
@@ -186,7 +186,7 @@ export default function QuizGenerator() {
               />
               <Button type="submit" className="mt-4 w-full">
                 <WandSparkles className="mr-2 h-4 w-4" />
-                Generate Quiz
+                Forge Quiz
               </Button>
             </form>
           </Form>
@@ -196,7 +196,7 @@ export default function QuizGenerator() {
           <div className="flex flex-col items-center justify-center h-40">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="mt-4 text-muted-foreground">
-              Generating your quiz...
+              Forging your quiz...
             </p>
           </div>
         )}

@@ -45,9 +45,8 @@ export const navLinks = [
   { href: '/profile-optimizer', label: 'Profile Optimizer', icon: Lightbulb },
   { href: '/content-studio', label: 'Content Studio', icon: PenSquare },
   { href: '/course-manager', label: 'Course Manager', icon: BookMarked },
-  { href: '/quiz-generator', label: 'Quiz Generator', icon: BrainCircuit },
+  { href: '/quiz-generator', label: 'Knowledge Forge', icon: BrainCircuit },
   { href: '/quiz-history', label: 'Quiz History', icon: History },
-  { href: '/action-plan', label: 'Action Plan', icon: ListChecks },
 ];
 
 export function NavLink({
