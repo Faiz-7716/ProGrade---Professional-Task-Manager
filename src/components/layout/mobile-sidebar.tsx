@@ -16,9 +16,11 @@ export default function MobileSidebar({
 }: MobileSidebarProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="left" className="w-[300px] p-0 border-r-0 glassmorphism">
-        <SidebarContent isMobile={true} onLinkClick={() => setIsOpen(false)} />
+      <SheetContent side="left" className="w-[280px] p-0 border-r-0 bg-card">
+        <SidebarContent onLinkClick={() => setIsOpen(false)} />
       </SheetContent>
     </Sheet>
   );
 }
+
+    
