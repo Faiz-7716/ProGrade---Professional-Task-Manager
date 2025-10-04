@@ -2,7 +2,6 @@
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
 } from '@/components/ui/sheet';
 import { SidebarContent } from './sidebar';
 
@@ -17,8 +16,8 @@ export default function MobileSidebar({
 }: MobileSidebarProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent side="left" className="p-0">
-        <SidebarContent />
+      <SheetContent side="left" className="w-[300px] p-0 border-r-0 glassmorphism">
+        <SidebarContent isMobile={true} onLinkClick={() => setIsOpen(false)} />
       </SheetContent>
     </Sheet>
   );

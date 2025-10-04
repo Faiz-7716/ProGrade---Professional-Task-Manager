@@ -8,10 +8,17 @@ export default {
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
       fontFamily: {
         body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        headline: ['Orbitron', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -55,16 +62,9 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
         },
-        sidebar: {
-          DEFAULT: 'hsl(var(--background))',
-          foreground: 'hsl(var(--foreground))',
-          primary: 'hsl(var(--primary))',
-          'primary-foreground': 'hsl(var(--primary-foreground))',
-          accent: 'hsl(var(--accent))',
-          'accent-foreground': 'hsl(var(--accent-foreground))',
-          border: 'hsl(var(--border))',
-          ring: 'hsl(var(--ring))',
-        },
+      },
+      boxShadow: {
+        'inner-sm': 'inset 0 1px 2px 0 rgb(0 0 0 / 0.2)',
       },
       borderRadius: {
         lg: 'var(--radius)',
