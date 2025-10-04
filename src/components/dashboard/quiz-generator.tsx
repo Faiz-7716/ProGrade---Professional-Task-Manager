@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { generateQuizAction } from '@/app/actions';
+import { generateQuizAction, generateQuizTitleAction } from '@/app/actions';
 import { Loader2, WandSparkles, Sparkles, Check, X } from 'lucide-react';
 import { type GenerateQuizOutput } from '@/ai/flows/generate-quiz';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -52,7 +52,7 @@ export default function QuizGenerator() {
   const [wrongAnswers, setWrongAnswers] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
-  const [learningTopic, setLearningTopic] = useState('');
+  const [quizTitle, setQuizTitle] = useState('');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,13 +63,23 @@ export default function QuizGenerator() {
     setQuizState('loading');
     setError(null);
     setQuiz(null);
-    setLearningTopic(values.learningTopic); // Save the topic
-    const res = await generateQuizAction(values);
-    if (res.error) {
-      setError(res.error);
+
+    // First, generate the title
+    const titleRes = await generateQuizTitleAction({ learningTopic: values.learningTopic });
+    if(titleRes.error) {
+        setError(titleRes.error);
+        setQuizState('error');
+        return;
+    }
+    setQuizTitle(titleRes.title);
+    
+    // Then, generate the quiz questions
+    const quizRes = await generateQuizAction(values);
+    if (quizRes.error) {
+      setError(quizRes.error);
       setQuizState('error');
-    } else if (res.quiz) {
-      setQuiz(res.quiz);
+    } else if (quizRes.quiz) {
+      setQuiz(quizRes.quiz);
       setQuizState('in_progress');
       // Reset scores and counters
       setCurrentQuestionIndex(0);
@@ -92,7 +102,7 @@ export default function QuizGenerator() {
       );
       await addDoc(quizHistoryRef, {
         userId: user.uid,
-        quizName: learningTopic.substring(0, 50) + '...', // Truncate for a name
+        quizName: quizTitle,
         points: score,
         correctAnswers: correctAnswers,
         wrongAnswers: wrongAnswers,
@@ -210,6 +220,7 @@ export default function QuizGenerator() {
         {quizState === 'in_progress' && currentQuestion && quiz && (
           <div className="space-y-6">
             <div className="space-y-2">
+                <h2 className="text-xl font-headline text-center mb-4">{quizTitle}</h2>
               <p className="text-sm text-muted-foreground">
                 Question {currentQuestionIndex + 1} of {quiz.questions.length}
               </p>
@@ -304,7 +315,7 @@ export default function QuizGenerator() {
 
         {quizState === 'completed' && quiz && (
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold">Quiz Complete!</h2>
+            <h2 className="text-2xl font-bold">{quizTitle} Complete!</h2>
             <p className="text-lg">
               You scored{' '}
               <span className="font-bold text-primary">{score}</span> out of{' '}

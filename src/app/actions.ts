@@ -14,6 +14,10 @@ import {
     GenerateQuizInput,
   } from '@/ai/flows/generate-quiz';
 import {
+    generateQuizTitle,
+    GenerateQuizTitleInput,
+} from '@/ai/flows/generate-quiz-title';
+import {
   parseResume,
   ParseResumeInput,
 } from '@/ai/flows/parse-resume';
@@ -107,6 +111,15 @@ export async function generateQuizAction(input: GenerateQuizInput) {
       return handleActionError(e);
     }
   }
+
+export async function generateQuizTitleAction(input: GenerateQuizTitleInput) {
+    try {
+        const result = await generateQuizTitle(input);
+        return result;
+    } catch (e) {
+        return handleActionError(e);
+    }
+}
 
 export async function provideJournalFeedbackAction(input: ProvideJournalFeedbackInput) {
     try {
