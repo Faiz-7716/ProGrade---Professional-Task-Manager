@@ -21,7 +21,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Backspace,
+  Delete,
   Calendar as CalendarIcon,
   Check,
   ShoppingBag,
@@ -193,7 +193,7 @@ export default function AddExpenseSheet({
                         className="h-16 text-2xl font-bold" 
                         onClick={() => handleKeyPress(key)}
                     >
-                        {key === 'backspace' ? <Backspace /> : key}
+                        {key === 'backspace' ? <Delete /> : key}
                     </Button>
                 ))}
             </div>
